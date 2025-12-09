@@ -1,9 +1,39 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || '')
+// 获取 Google AI Studio API Key
+const apiKey = process.env.GOOGLE_AI_API_KEY
+
+if (!apiKey) {
+  console.warn('警告: GOOGLE_AI_API_KEY 未配置，请在 .env 文件中设置')
+}
+
+// 检查代理配置
+const proxyUrl = process.env.HTTPS_PROXY || process.env.HTTP_PROXY || process.env.PROXY
+if (proxyUrl) {
+  console.log('检测到代理配置:', proxyUrl.replace(/\/\/.*@/, '//***@')) // 隐藏密码
+  // Node.js 18+ 的 fetch (undici) 会自动使用 HTTPS_PROXY 和 HTTP_PROXY 环境变量
+  // 确保环境变量已设置
+  if (!process.env.HTTPS_PROXY && proxyUrl.startsWith('http')) {
+    process.env.HTTPS_PROXY = proxyUrl
+  }
+  if (!process.env.HTTP_PROXY && proxyUrl.startsWith('http')) {
+    process.env.HTTP_PROXY = proxyUrl
+  }
+} else {
+  console.warn('提示: 未检测到代理配置，如果无法连接 Google API，请在 .env 中设置 HTTPS_PROXY 或 HTTP_PROXY')
+}
+
+const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null
 
 export async function generateSVG(description: string): Promise<string> {
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' })
+  // 检查 API Key 是否配置
+  if (!genAI || !apiKey) {
+    throw new Error('Google AI API Key 未配置，请在 .env 文件中设置 GOOGLE_AI_API_KEY')
+  }
+
+  // 使用 gemini-pro 或 gemini-1.5-flash（更稳定的模型）
+  // gemini-2.0-flash-exp 是实验性模型，可能不稳定
+  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
 
   const prompt = `你是一个专业的 SVG 动画设计师。根据用户的描述，生成一个完整的、可运行的 SVG 动画代码。
 
@@ -32,9 +62,19 @@ export async function generateSVG(description: string): Promise<string> {
     }
 
     return svgCode
-  } catch (error) {
+  } catch (error: any) {
     console.error('Gemini API 错误:', error)
-    throw new Error('生成 SVG 失败，请稍后重试')
+    
+    // 提供更详细的错误信息
+    if (error.message?.includes('API_KEY_INVALID') || error.message?.includes('401')) {
+      throw new Error('API Key 无效，请检查 GOOGLE_AI_API_KEY 是否正确')
+    } else if (error.message?.includes('fetch failed') || error.message?.includes('network')) {
+      throw new Error('网络连接失败，请检查网络连接或代理设置')
+    } else if (error.message?.includes('quota') || error.message?.includes('429')) {
+      throw new Error('API 调用次数超限，请稍后再试')
+    } else {
+      throw new Error(`生成 SVG 失败: ${error.message || '未知错误'}`)
+    }
   }
 }
 

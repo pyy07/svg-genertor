@@ -16,8 +16,19 @@ interface User {
 export default function Home() {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const [allowAnonymous, setAllowAnonymous] = useState(false)
 
   useEffect(() => {
+    // 检查是否允许匿名访问
+    fetch('/api/auth/check')
+      .then((res) => res.json())
+      .then((data) => {
+        setAllowAnonymous(data.allowAnonymous || false)
+      })
+      .catch(() => {
+        setAllowAnonymous(false)
+      })
+
     // 检查 URL 中是否有 token（登录回调）
     const urlParams = new URLSearchParams(window.location.search)
     const token = urlParams.get('token')
@@ -154,6 +165,7 @@ export default function Home() {
           userId={user?.id}
           remaining={user?.remaining ?? 0}
           isLoggedIn={!!user}
+          allowAnonymous={allowAnonymous}
           onLoginRequest={handleWechatLogin}
         />
       </div>

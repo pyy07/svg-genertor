@@ -35,12 +35,16 @@ npm install
 cp .env.example .env
 ```
 
-需要配置的变量：
+需要配置的变量（详见 `.env.example`）：
 - `DATABASE_URL`: PostgreSQL 数据库连接字符串
 - `GOOGLE_AI_API_KEY`: Google AI Studio API Key
 - `NEXTAUTH_SECRET`: NextAuth 密钥
-- `WECHAT_APP_ID`: 微信开放平台 AppID
-- `WECHAT_APP_SECRET`: 微信开放平台 AppSecret
+- `WECHAT_APP_ID`: 微信开放平台 AppID（可选）
+- `WECHAT_APP_SECRET`: 微信开放平台 AppSecret（可选）
+- `ALLOW_ANONYMOUS`: 允许匿名访问（本地测试用，设置为 `true` 时无需登录即可生成 SVG）
+- `HTTPS_PROXY` 或 `HTTP_PROXY`: 代理地址（如果需要通过代理访问 Google API，格式：`http://127.0.0.1:7890` 或 `socks5://127.0.0.1:7890`）
+
+详细配置说明请参考 `.env.example` 文件中的注释。
 
 ### 3. 初始化数据库
 
@@ -93,6 +97,21 @@ npm run dev
 2. 获取连接字符串
 3. 在环境变量中配置 `DATABASE_URL`
 4. 运行 `npx prisma migrate deploy` 部署数据库 schema
+
+## 本地测试模式
+
+为了方便本地开发测试，可以启用匿名访问模式，无需登录即可生成 SVG：
+
+在 `.env` 文件中添加：
+```env
+ALLOW_ANONYMOUS=true
+```
+
+启用后：
+- ✅ 无需登录即可生成 SVG
+- ✅ 不限制使用次数
+- ✅ 生成的 SVG 不会保存到数据库
+- ⚠️ 仅用于本地开发，生产环境请勿启用
 
 ## 开发
 

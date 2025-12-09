@@ -6,6 +6,7 @@ interface SVGGeneratorProps {
   userId?: string
   remaining: number
   isLoggedIn: boolean
+  allowAnonymous?: boolean
   onLoginRequest: () => void
 }
 
@@ -13,6 +14,7 @@ export default function SVGGenerator({
   userId,
   remaining,
   isLoggedIn,
+  allowAnonymous = false,
   onLoginRequest,
 }: SVGGeneratorProps) {
   const [description, setDescription] = useState('')
@@ -27,15 +29,18 @@ export default function SVGGenerator({
       return
     }
 
-    if (!isLoggedIn || !userId) {
-      setError('请先登录后再生成 SVG')
-      onLoginRequest()
-      return
-    }
+    // 如果允许匿名访问，跳过登录检查
+    if (!allowAnonymous) {
+      if (!isLoggedIn || !userId) {
+        setError('请先登录后再生成 SVG')
+        onLoginRequest()
+        return
+      }
 
-    if (currentRemaining === 0 && remaining !== -1) {
-      setError('使用次数已用完')
-      return
+      if (currentRemaining === 0 && remaining !== -1) {
+        setError('使用次数已用完')
+        return
+      }
     }
 
     setLoading(true)
@@ -49,7 +54,7 @@ export default function SVGGenerator({
         },
         body: JSON.stringify({
           description,
-          userId,
+          userId: userId || undefined, // 匿名访问时不传 userId
         }),
       })
 
@@ -65,7 +70,10 @@ export default function SVGGenerator({
       }
 
       setSvgCode(data.svgCode)
-      setCurrentRemaining(data.remaining)
+      // 如果返回了剩余次数，更新它
+      if (data.remaining !== undefined) {
+        setCurrentRemaining(data.remaining)
+      }
       setDescription('')
     } catch (err: any) {
       setError(err.message || '生成失败，请稍后重试')
@@ -78,7 +86,19 @@ export default function SVGGenerator({
     <div className="w-full max-w-4xl mx-auto p-6">
       <div className="mb-6">
         <h2 className="text-2xl font-bold mb-2">生成 SVG 动画</h2>
-        {isLoggedIn ? (
+        {allowAnonymous ? (
+          <p className="text-gray-600">
+            {isLoggedIn ? (
+              <>
+                剩余使用次数:{' '}
+                {currentRemaining === -1 ? '无限制' : currentRemaining}
+                {' '}（本地测试模式：未登录用户也可使用）
+              </>
+            ) : (
+              '本地测试模式：无需登录即可生成 SVG'
+            )}
+          </p>
+        ) : isLoggedIn ? (
           <p className="text-gray-600">
             剩余使用次数:{' '}
             {currentRemaining === -1 ? '无限制' : currentRemaining}
@@ -99,13 +119,13 @@ export default function SVGGenerator({
           rows={4}
           disabled={
             loading ||
-            (!isLoggedIn && !description.trim()) ||
+            (!allowAnonymous && !isLoggedIn && !description.trim()) ||
             (isLoggedIn && currentRemaining === 0 && remaining !== -1)
           }
         />
       </div>
 
-      {!isLoggedIn ? (
+      {!isLoggedIn && !allowAnonymous ? (
         <div className="space-y-4">
           <button
             onClick={handleGenerate}
@@ -124,7 +144,7 @@ export default function SVGGenerator({
           disabled={
             loading ||
             !description.trim() ||
-            (currentRemaining === 0 && remaining !== -1)
+            (isLoggedIn && currentRemaining === 0 && remaining !== -1)
           }
           className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
         >

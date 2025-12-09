@@ -15,14 +15,37 @@
 1. 访问 [微信公众平台测试号](https://mp.weixin.qq.com/debug/cgi-bin/sandbox?t=jsapisandbox)
 2. 使用微信扫码登录
 3. 获取测试号的 AppID 和 AppSecret
-4. 配置网页授权域名（在"网页授权获取用户基本信息"中配置）
+4. **重要：配置网页授权域名**
+   - 在测试号管理页面找到"网页授权获取用户基本信息"
+   - 点击"修改"，填写授权域名（**只填域名，不填协议和路径**）
+   - **本地开发**：填写 `localhost:3000` 或 `127.0.0.1:3000`
+   - **生产环境**：填写你的域名，如 `your-domain.com`（不要加 `http://` 或 `https://`）
+   - 保存配置
 5. 在 `.env` 中配置：
    ```env
    WECHAT_APP_ID=测试号的AppID（通常以wx开头）
    WECHAT_APP_SECRET=测试号的AppSecret
+   # 本地开发
+   WECHAT_REDIRECT_URI=http://localhost:3000/api/auth/wechat
+   # 或生产环境
    WECHAT_REDIRECT_URI=https://your-domain.com/api/auth/wechat
    ```
+   **注意**：`WECHAT_REDIRECT_URI` 的域名部分必须与步骤4中配置的授权域名完全一致！
 6. **注意**：测试号登录需要在微信客户端内打开链接
+
+#### ⚠️ 常见错误：redirect_uri域名与后台配置不一致（错误码:10003）
+
+**原因**：
+- 测试号后台配置的授权域名与代码中使用的 `redirect_uri` 域名不一致
+- 授权域名配置错误（包含了协议或路径）
+
+**解决方法**：
+1. 检查测试号后台"网页授权获取用户基本信息"中配置的域名
+2. 确保 `.env` 中 `WECHAT_REDIRECT_URI` 的域名部分与后台配置完全一致
+3. 授权域名只填域名，例如：
+   - ✅ 正确：`localhost:3000` 或 `your-domain.com`
+   - ❌ 错误：`http://localhost:3000` 或 `https://your-domain.com`
+4. 修改配置后，可能需要等待几分钟生效
 
 ### 方式二：创建网站应用（用于生产环境）
 
