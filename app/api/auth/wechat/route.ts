@@ -9,10 +9,15 @@ export async function GET(request: NextRequest) {
     const code = searchParams.get('code')
     const state = searchParams.get('state')
     const dev = searchParams.get('dev') === 'true'
+    const error = searchParams.get('error')
+    const errorDescription = searchParams.get('error_description')
+
+    // 检查微信配置
+    const appId = process.env.WECHAT_APP_ID
+    const appSecret = process.env.WECHAT_APP_SECRET
 
     // 开发模式：直接创建测试用户
-    if (dev || !code) {
-      // 如果没有配置微信 AppID 或处于开发模式，使用模拟登录
+    if (dev) {
       const mockOpenId = `dev_${Date.now()}_${Math.random().toString(36).substring(7)}`
       let user = await getUserByWechatOpenId(mockOpenId)
 
@@ -37,15 +42,51 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(redirectUrl)
     }
 
-    // 使用 code 换取 access_token 和 openid
-    const appId = process.env.WECHAT_APP_ID
-    const appSecret = process.env.WECHAT_APP_SECRET
-
+    // 如果没有配置微信 AppID，使用开发模式
     if (!appId || !appSecret) {
-      return NextResponse.json(
-        { error: '微信配置未完成' },
-        { status: 500 }
-      )
+      // 使用模拟登录
+      const mockOpenId = `dev_${Date.now()}_${Math.random().toString(36).substring(7)}`
+      let user = await getUserByWechatOpenId(mockOpenId)
+
+      if (!user) {
+        user = await createUser(mockOpenId, `测试用户_${Date.now().toString().slice(-6)}`)
+      }
+
+      if (!user) {
+        return NextResponse.json(
+          { error: '创建用户失败' },
+          { status: 500 }
+        )
+      }
+
+      const token = Buffer.from(
+        JSON.stringify({ userId: user.id })
+      ).toString('base64')
+
+      const redirectUrl = new URL('/', request.url)
+      redirectUrl.searchParams.set('token', token)
+      return NextResponse.redirect(redirectUrl)
+    }
+
+    // 如果配置了微信，检查是否有错误参数
+    if (error) {
+      console.error('微信授权错误:', error, errorDescription)
+      // 重定向到登录页面并显示错误信息
+      const loginUrl = new URL('/login', request.url)
+      loginUrl.searchParams.set('error', error)
+      if (errorDescription) {
+        loginUrl.searchParams.set('error_description', errorDescription)
+      }
+      return NextResponse.redirect(loginUrl)
+    }
+
+    // 如果配置了微信但没有 code，返回错误
+    if (!code) {
+      console.error('微信回调缺少授权码')
+      const loginUrl = new URL('/login', request.url)
+      loginUrl.searchParams.set('error', 'missing_code')
+      loginUrl.searchParams.set('error_description', '缺少授权码，请重新尝试登录')
+      return NextResponse.redirect(loginUrl)
     }
 
     // 1. 使用 code 换取 access_token

@@ -94,7 +94,16 @@ export default function LoginPage() {
     const errorDescription = urlParams.get('error_description')
     
     if (error) {
-      alert(`登录错误: ${errorDescription || error}\n\n提示：请确保使用的是微信开放平台的网站应用 AppID，而不是公众号 AppID。`)
+      let errorMessage = errorDescription || error
+      
+      // 针对特定错误提供更友好的提示
+      if (error === 'missing_code') {
+        errorMessage = '缺少授权码，可能的原因：\n1. 测试号需要在微信客户端内打开链接\n2. 网页授权域名未正确配置\n3. 用户取消了授权\n\n请重新尝试登录'
+      } else if (error === 'access_denied') {
+        errorMessage = '用户取消了授权，请重新尝试登录'
+      }
+      
+      alert(`登录错误: ${errorMessage}\n\n提示：如果使用测试号，请确保在微信客户端内打开链接进行授权。`)
       // 清除 URL 中的错误参数
       window.history.replaceState({}, '', window.location.pathname)
     }
