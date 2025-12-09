@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import QRCode from 'qrcode'
 
-export default function QRLoginPage() {
+function QRLoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [qrUrl, setQrUrl] = useState<string | null>(null)
@@ -136,6 +136,25 @@ export default function QRLoginPage() {
         )}
       </div>
     </main>
+  )
+}
+
+export default function QRLoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="flex min-h-screen items-center justify-center p-8 bg-gray-50">
+          <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto"></div>
+              <p className="mt-4 text-gray-600">加载中...</p>
+            </div>
+          </div>
+        </main>
+      }
+    >
+      <QRLoginContent />
+    </Suspense>
   )
 }
 
