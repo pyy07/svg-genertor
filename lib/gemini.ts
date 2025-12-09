@@ -31,9 +31,15 @@ export async function generateSVG(description: string): Promise<string> {
     throw new Error('Google AI API Key 未配置，请在 .env 文件中设置 GOOGLE_AI_API_KEY')
   }
 
-  // 使用 gemini-pro 或 gemini-1.5-flash（更稳定的模型）
-  // gemini-2.0-flash-exp 是实验性模型，可能不稳定
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+  // 使用 Gemini 3.0 模型
+  // 默认使用 gemini-3.0-pro，如果不可用可以尝试：
+  // - gemini-3.0-flash（更快）
+  // - gemini-1.5-pro（稳定版本）
+  // - gemini-pro（通用版本）
+  // 可以通过环境变量 GEMINI_MODEL 自定义模型名称
+  const modelName = process.env.GEMINI_MODEL || 'gemini-3-pro-preview'
+  console.log('使用模型:', modelName)
+  const model = genAI.getGenerativeModel({ model: modelName })
 
   const prompt = `你是一个专业的 SVG 动画设计师。根据用户的描述，生成一个完整的、可运行的 SVG 动画代码。
 
