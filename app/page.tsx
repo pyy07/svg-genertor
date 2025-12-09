@@ -18,18 +18,35 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // 从 localStorage 获取 token（实际应该使用更安全的方式）
-    const token = localStorage.getItem('auth_token')
+    // 检查 URL 中是否有 token（登录回调）
+    const urlParams = new URLSearchParams(window.location.search)
+    const token = urlParams.get('token')
+    
     if (token) {
+      // 保存 token 到 localStorage
+      localStorage.setItem('auth_token', token)
+      // 清除 URL 中的 token
+      window.history.replaceState({}, '', window.location.pathname)
+      // 获取用户信息
       try {
-        // 浏览器环境使用 atob 解码 base64
         const payload = JSON.parse(atob(token))
         fetchUserInfo(payload.userId)
       } catch (error) {
         setLoading(false)
       }
     } else {
-      setLoading(false)
+      // 从 localStorage 获取 token
+      const savedToken = localStorage.getItem('auth_token')
+      if (savedToken) {
+        try {
+          const payload = JSON.parse(atob(savedToken))
+          fetchUserInfo(payload.userId)
+        } catch (error) {
+          setLoading(false)
+        }
+      } else {
+        setLoading(false)
+      }
     }
   }, [])
 
@@ -52,9 +69,24 @@ export default function Home() {
   }
 
   const handleWechatLogin = () => {
-    // 微信登录 URL（需要配置实际的微信 OAuth URL）
-    const wechatAuthUrl = `/api/auth/wechat`
-    window.location.href = wechatAuthUrl
+    // 跳转到登录页面
+    window.location.href = '/login'
+  }
+
+  const handleLogout = async () => {
+    try {
+      // 调用退出登录 API（可选，主要用于服务端清理）
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+      })
+    } catch (error) {
+      console.error('退出登录失败:', error)
+    } finally {
+      // 清除本地存储的 token
+      localStorage.removeItem('auth_token')
+      // 刷新页面
+      window.location.href = '/'
+    }
   }
 
   if (loading) {
@@ -82,18 +114,31 @@ export default function Home() {
           </div>
           <div className="text-right">
             {user ? (
-              <>
-                <p className="text-sm text-gray-600">
-                  剩余次数:{' '}
-                  {user.remaining === -1 ? '无限制' : user.remaining}
-                </p>
-                <a
-                  href="/assets"
-                  className="text-blue-500 hover:text-blue-700 text-sm"
-                >
-                  我的素材
-                </a>
-              </>
+              <div className="flex flex-col items-end gap-2">
+                <div className="flex items-center gap-4">
+                  <p className="text-sm text-gray-600">
+                    剩余次数:{' '}
+                    {user.remaining === -1 ? '无限制' : user.remaining}
+                  </p>
+                  <a
+                    href="/assets"
+                    className="text-blue-500 hover:text-blue-700 text-sm"
+                  >
+                    我的素材
+                  </a>
+                  <button
+                    onClick={handleLogout}
+                    className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded hover:bg-gray-50"
+                  >
+                    退出登录
+                  </button>
+                </div>
+                {user.nickname && (
+                  <p className="text-xs text-gray-500">
+                    {user.nickname}
+                  </p>
+                )}
+              </div>
             ) : (
               <button
                 onClick={handleWechatLogin}

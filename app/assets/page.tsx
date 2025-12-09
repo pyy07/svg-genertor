@@ -21,6 +21,19 @@ export default function AssetsPage() {
   const [userOnly, setUserOnly] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
 
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+      })
+    } catch (error) {
+      console.error('退出登录失败:', error)
+    } finally {
+      localStorage.removeItem('auth_token')
+      window.location.href = '/'
+    }
+  }
+
   useEffect(() => {
     const token = localStorage.getItem('auth_token')
     setIsLoggedIn(!!token)
@@ -67,17 +80,25 @@ export default function AssetsPage() {
       <div className="max-w-6xl mx-auto">
         <header className="mb-8 flex justify-between items-center">
           <h1 className="text-3xl font-bold">素材库</h1>
-          <div className="flex gap-4">
+          <div className="flex gap-4 items-center">
             {isLoggedIn && (
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={userOnly}
-                  onChange={(e) => setUserOnly(e.target.checked)}
-                  className="rounded"
-                />
-                <span className="text-sm">仅显示我的</span>
-              </label>
+              <>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={userOnly}
+                    onChange={(e) => setUserOnly(e.target.checked)}
+                    className="rounded"
+                  />
+                  <span className="text-sm">仅显示我的</span>
+                </label>
+                <button
+                  onClick={handleLogout}
+                  className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded hover:bg-gray-50"
+                >
+                  退出登录
+                </button>
+              </>
             )}
             <Link
               href="/"
