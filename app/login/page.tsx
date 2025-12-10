@@ -110,11 +110,11 @@ export default function LoginPage() {
   }, [router])
 
   return (
-    <main className="flex min-h-screen items-center justify-center p-8 bg-gray-50">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2">SVG 动画生成器</h1>
-          <p className="text-gray-600">请使用微信扫码登录</p>
+    <main className="flex min-h-screen items-center justify-center p-4 sm:p-8 bg-gray-50">
+      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-4 sm:p-6 lg:p-8">
+        <div className="text-center mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">SVG 动画生成器</h1>
+          <p className="text-sm sm:text-base text-gray-600">请使用微信扫码登录</p>
         </div>
 
         {hasWechatConfig === null ? (
@@ -124,22 +124,22 @@ export default function LoginPage() {
           </div>
         ) : hasWechatConfig ? (
           <div className="space-y-4">
-            <div className="text-center mb-6">
-              <div className="inline-block p-4 bg-gray-100 rounded-lg">
-                <div className="w-64 h-64 flex items-center justify-center bg-white rounded">
+            <div className="text-center mb-4 sm:mb-6">
+              <div className="inline-block p-3 sm:p-4 bg-gray-100 rounded-lg">
+                <div className="w-48 h-48 sm:w-64 sm:h-64 flex items-center justify-center bg-white rounded">
                   <div className="text-center">
-                    <div className="text-6xl mb-4">📱</div>
-                    <p className="text-sm text-gray-600">
+                    <div className="text-5xl sm:text-6xl mb-3 sm:mb-4">📱</div>
+                    <p className="text-xs sm:text-sm text-gray-600 px-2">
                       点击下方按钮<br />
                       跳转到微信扫码页面
                     </p>
                   </div>
                 </div>
               </div>
-              <p className="mt-4 text-sm text-gray-500">
+              <p className="mt-3 sm:mt-4 text-xs sm:text-sm text-gray-500">
                 使用微信登录
               </p>
-              <div className="mt-2 bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <div className="mt-2 bg-blue-50 border border-blue-200 rounded-lg p-2 sm:p-3">
                 <p className="text-xs text-blue-800">
                   💡 提示：如果使用测试号，请在微信客户端内打开链接进行授权
                 </p>
@@ -149,7 +149,7 @@ export default function LoginPage() {
             <button
               onClick={handleWechatLogin}
               disabled={loading}
-              className="w-full px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full px-6 py-3 sm:py-3.5 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm sm:text-base touch-manipulation"
             >
               {loading ? (
                 <>

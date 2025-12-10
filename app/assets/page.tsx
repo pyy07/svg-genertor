@@ -82,28 +82,28 @@ export default function AssetsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-6">
+      <main className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-8">
+        <div className="mb-4 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-3 sm:gap-0">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">我的素材</h1>
-              <p className="text-gray-600">管理您生成的所有 SVG 动画</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">我的素材</h1>
+              <p className="text-sm sm:text-base text-gray-600">管理您生成的所有 SVG 动画</p>
             </div>
-            <div className="flex gap-3 items-center">
+            <div className="flex gap-2 sm:gap-3 items-center">
               {isLoggedIn && (
                 <>
-                  <label className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                  <label className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-white border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors touch-manipulation">
                     <input
                       type="checkbox"
                       checked={userOnly}
                       onChange={(e) => setUserOnly(e.target.checked)}
                       className="rounded"
                     />
-                    <span className="text-sm text-gray-700">仅显示我的</span>
+                    <span className="text-xs sm:text-sm text-gray-700 whitespace-nowrap">仅显示我的</span>
                   </label>
                   <button
                     onClick={handleLogout}
-                    className="px-4 py-2 text-sm text-gray-700 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-700 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors touch-manipulation whitespace-nowrap"
                   >
                     退出登录
                   </button>
@@ -137,7 +137,7 @@ export default function AssetsPage() {
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {assets.map((asset) => (
               <Link
                 key={asset.id}
@@ -150,8 +150,8 @@ export default function AssetsPage() {
                     dangerouslySetInnerHTML={{ __html: asset.svgCode }}
                   />
                 </div>
-                <div className="p-4">
-                      <p className="text-sm text-gray-700 line-clamp-2 mb-2 group-hover:text-blue-600 transition-colors">
+                <div className="p-3 sm:p-4">
+                      <p className="text-xs sm:text-sm text-gray-700 line-clamp-2 mb-2 group-hover:text-blue-600 transition-colors">
                         {asset.description}
                       </p>
                       <div className="text-xs text-gray-500 space-y-1">

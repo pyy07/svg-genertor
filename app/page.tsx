@@ -118,20 +118,20 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation user={user || undefined} onLogout={handleLogout} />
-      <main className="h-[calc(100vh-4rem)] flex">
-        {/* 左侧预览区域 */}
-        <div className="flex-1 bg-white p-6 flex flex-col border-r border-gray-200">
-          <div className="mb-4">
-            <h2 className="text-gray-900 text-lg font-medium">动画预览</h2>
+      <main className="min-h-[calc(100vh-4rem)] flex flex-col lg:flex-row">
+        {/* 预览区域 - 移动端在上，桌面端在左 */}
+        <div className="flex-1 bg-white p-3 sm:p-6 flex flex-col border-b lg:border-b-0 lg:border-r border-gray-200 order-1 min-h-0">
+          <div className="mb-2 sm:mb-4 flex-shrink-0">
+            <h2 className="text-gray-900 text-base sm:text-lg font-medium">动画预览</h2>
           </div>
-          <div className="flex-1 bg-white rounded-lg border border-gray-300 overflow-auto shadow-sm">
+          <div className="flex-1 bg-white rounded-lg border border-gray-300 overflow-hidden shadow-sm min-h-[300px] sm:min-h-[400px] lg:min-h-0 flex flex-col min-h-0">
             <SVGPreview svgCode={svgCode} loading={svgLoading} />
           </div>
         </div>
 
-        {/* 右侧控制面板 */}
-        <div className="w-96 bg-white border-l border-gray-200 overflow-y-auto">
-          <div className="p-6">
+        {/* 控制面板 - 移动端在下，桌面端在右 */}
+        <div className="w-full lg:w-96 bg-white border-t lg:border-t-0 lg:border-l border-gray-200 overflow-y-auto order-2 max-h-[60vh] lg:max-h-none">
+          <div className="p-3 sm:p-6">
             <SVGGenerator
               userId={user?.id}
               remaining={user?.remaining ?? 0}

@@ -38,9 +38,9 @@ export default function SVGPreview({ svgCode, loading }: SVGPreviewProps) {
   }
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className="w-full flex-1 relative flex flex-col min-h-0">
       {loading ? (
-        <div className="flex-1 flex items-center justify-center">
+        <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center text-gray-500">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
             <p className="text-lg text-gray-700">生成中...</p>
@@ -48,10 +48,10 @@ export default function SVGPreview({ svgCode, loading }: SVGPreviewProps) {
         </div>
       ) : svgCode ? (
         <>
-          <div className="flex justify-end mb-2">
+          <div className="flex justify-end mb-2 flex-shrink-0 relative z-10">
             <button
               onClick={handleCopy}
-              className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors flex items-center gap-2"
+              className="px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors flex items-center gap-1.5 sm:gap-2 touch-manipulation"
               title="复制 SVG 代码"
             >
               {copied ? (
@@ -71,15 +71,15 @@ export default function SVGPreview({ svgCode, loading }: SVGPreviewProps) {
               )}
             </button>
           </div>
-          <div className="flex-1 flex items-center justify-center p-8 overflow-auto">
+          <div className="flex-1 flex items-center justify-center p-4 sm:p-8 overflow-auto min-h-0">
             <div
-              className="w-full h-full flex items-center justify-center"
+              className="w-full flex items-center justify-center"
               dangerouslySetInnerHTML={{ __html: svgCode }}
             />
           </div>
         </>
       ) : (
-        <div className="flex-1 flex items-center justify-center">
+        <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center text-gray-500">
             <div className="text-6xl mb-4">🎨</div>
             <p className="text-lg text-gray-700">动画预览面板</p>

@@ -68,33 +68,38 @@ export default function AssetDetailPage() {
   }
 
   return (
-    <main className="min-h-screen p-8">
+    <main className="min-h-screen p-3 sm:p-4 lg:p-8">
       <div className="max-w-4xl mx-auto">
-        <header className="mb-8">
+        <header className="mb-4 sm:mb-8">
           <Link
             href="/assets"
-            className="text-blue-500 hover:text-blue-700 mb-4 inline-block"
+            className="text-sm sm:text-base text-blue-500 hover:text-blue-700 mb-2 sm:mb-4 inline-block touch-manipulation"
           >
             ← 返回素材列表
           </Link>
-          <h1 className="text-3xl font-bold mb-2">素材详情</h1>
-          <p className="text-gray-600">{asset.description}</p>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">素材详情</h1>
+          <p className="text-sm sm:text-base text-gray-600">{asset.description}</p>
         </header>
 
-        <div className="bg-white border border-gray-300 rounded-lg p-8 mb-6">
-          <div dangerouslySetInnerHTML={{ __html: asset.svgCode }} />
+        <div className="bg-white border border-gray-300 rounded-lg p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6 overflow-hidden">
+          <div className="w-full flex items-center justify-center overflow-auto max-h-[600px]">
+            <div 
+              className="flex items-center justify-center w-full [&_svg]:max-w-full [&_svg]:max-h-[600px] [&_svg]:w-auto [&_svg]:h-auto"
+              dangerouslySetInnerHTML={{ __html: asset.svgCode }} 
+            />
+          </div>
         </div>
 
-        <details className="mb-6">
-          <summary className="cursor-pointer text-blue-500 hover:text-blue-700 mb-2">
+        <details className="mb-4 sm:mb-6">
+          <summary className="cursor-pointer text-sm sm:text-base text-blue-500 hover:text-blue-700 mb-2 py-2 touch-manipulation">
             查看 SVG 代码
           </summary>
-          <pre className="p-4 bg-gray-100 rounded-lg overflow-auto">
+          <pre className="p-3 sm:p-4 bg-gray-100 rounded-lg overflow-auto text-xs sm:text-sm">
             <code>{asset.svgCode}</code>
           </pre>
         </details>
 
-        <div className="text-sm text-gray-600 space-y-2">
+        <div className="text-xs sm:text-sm text-gray-600 space-y-1.5 sm:space-y-2">
           <p>创建时间: {new Date(asset.createdAt).toLocaleString('zh-CN')}</p>
           {asset.provider && (
             <p>

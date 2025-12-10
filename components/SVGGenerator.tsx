@@ -171,7 +171,7 @@ export default function SVGGenerator({
     <div className="w-full">
 
       {/* 动画描述 */}
-      <div className="mb-6">
+      <div className="mb-4 sm:mb-6">
         <label className="block text-sm font-medium text-gray-700 mb-2">
           动画描述
         </label>
@@ -180,8 +180,8 @@ export default function SVGGenerator({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="描述你想创建的动画，越详细越好。例如：'模拟一个二叉树的遍历过程，节点在被访问时变色，背景使用深色网格。'"
-            className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-gray-50 resize-none"
-            rows={6}
+            className="w-full p-3 sm:p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-gray-50 resize-none text-sm sm:text-base"
+            rows={5}
             maxLength={500}
             disabled={
               loading ||
@@ -197,7 +197,7 @@ export default function SVGGenerator({
 
       {/* Provider 和 Model 选择 */}
       {providers.length > 0 && (
-        <div className="mb-6 space-y-4">
+        <div className="mb-4 sm:mb-6 space-y-3 sm:space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               AI 模型提供商
@@ -205,7 +205,7 @@ export default function SVGGenerator({
             <select
               value={selectedProvider}
               onChange={(e) => setSelectedProvider(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white"
+              className="w-full p-2.5 sm:p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white text-sm sm:text-base"
               disabled={loading}
             >
               {providers.map((provider) => (
@@ -223,7 +223,7 @@ export default function SVGGenerator({
             <select
               value={selectedModel}
               onChange={(e) => setSelectedModel(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white"
+              className="w-full p-2.5 sm:p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white text-sm sm:text-base"
               disabled={loading || !selectedProvider}
             >
               {providers
@@ -240,15 +240,15 @@ export default function SVGGenerator({
 
       {/* 用户信息提示 */}
       {!allowAnonymous && !isLoggedIn && (
-        <div className="mb-6 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <p className="text-sm text-yellow-800">
+        <div className="mb-4 sm:mb-6 p-2.5 sm:p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <p className="text-xs sm:text-sm text-yellow-800">
             生成 SVG 需要登录，每个用户默认可以使用 3 次
           </p>
         </div>
       )}
       {isLoggedIn && (
-        <div className="mb-6 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-sm text-blue-800">
+        <div className="mb-4 sm:mb-6 p-2.5 sm:p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-xs sm:text-sm text-blue-800">
             剩余使用次数:{' '}
             <span className="font-semibold">
               {currentRemaining === -1 ? '无限制' : currentRemaining}
@@ -258,7 +258,7 @@ export default function SVGGenerator({
       )}
 
       {/* 操作按钮 */}
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         {svgCode && (
           <button
             onClick={() => {
@@ -272,7 +272,7 @@ export default function SVGGenerator({
               }
             }}
             disabled={loading}
-            className="w-full px-4 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full px-4 py-2.5 sm:py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors touch-manipulation"
             title="清除当前 SVG，重新生成全新的 SVG"
           >
             重新生成
@@ -286,7 +286,7 @@ export default function SVGGenerator({
             (isLoggedIn && currentRemaining === 0 && remaining !== -1) ||
             (!allowAnonymous && !isLoggedIn)
           }
-          className="w-full px-6 py-4 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:from-orange-600 hover:to-red-600 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed transition-all font-medium flex items-center justify-center gap-2 shadow-lg"
+          className="w-full px-6 py-3.5 sm:py-4 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:from-orange-600 hover:to-red-600 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed transition-all font-medium flex items-center justify-center gap-2 shadow-lg text-sm sm:text-base touch-manipulation"
         >
           {loading ? (
             <>
@@ -313,13 +313,13 @@ export default function SVGGenerator({
       </div>
 
       {error && (
-        <div className="mt-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+        <div className="mt-4 p-2.5 sm:p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-xs sm:text-sm">
           {error}
         </div>
       )}
 
       {svgCode && (
-        <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-blue-50 border border-blue-200 rounded-lg">
           <p className="text-xs text-blue-800 mb-2">
             💡 <strong>提示</strong>：输入新的描述可以修改当前 SVG，或点击&quot;重新生成&quot;创建全新的 SVG
           </p>
@@ -332,10 +332,10 @@ export default function SVGGenerator({
       )}
 
       {/* 底部链接 */}
-      <div className="mt-8 pt-6 border-t border-gray-200">
+      <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-gray-200">
         <a
           href="#"
-          className="text-xs text-gray-500 hover:text-gray-700 text-center block"
+          className="text-xs text-gray-500 hover:text-gray-700 text-center block py-2"
         >
           遇到问题？联系我
         </a>

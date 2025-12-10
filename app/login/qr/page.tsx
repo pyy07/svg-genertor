@@ -71,11 +71,11 @@ function QRLoginContent() {
   }, [qrUrl])
 
   return (
-    <main className="flex min-h-screen items-center justify-center p-8 bg-gray-50">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold mb-2">微信登录</h1>
-          <p className="text-gray-600">请使用微信扫码登录</p>
+    <main className="flex min-h-screen items-center justify-center p-4 sm:p-8 bg-gray-50">
+      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-4 sm:p-6 lg:p-8">
+        <div className="text-center mb-4 sm:mb-8">
+          <h1 className="text-xl sm:text-2xl font-bold mb-1 sm:mb-2">微信登录</h1>
+          <p className="text-sm sm:text-base text-gray-600">请使用微信扫码登录</p>
         </div>
 
         {loading ? (
@@ -86,28 +86,28 @@ function QRLoginContent() {
         ) : qrUrl ? (
           <div className="space-y-6">
             <div className="flex justify-center">
-              <div className="p-4 bg-white border-2 border-gray-200 rounded-lg">
+              <div className="p-2 sm:p-4 bg-white border-2 border-gray-200 rounded-lg">
                 {qrError ? (
-                  <div className="w-64 h-64 flex items-center justify-center">
-                    <div className="text-center">
-                      <p className="text-red-600 mb-2">{qrError}</p>
+                  <div className="w-48 h-48 sm:w-64 sm:h-64 flex items-center justify-center">
+                    <div className="text-center px-2">
+                      <p className="text-xs sm:text-sm text-red-600 mb-2">{qrError}</p>
                       <button
                         onClick={() => window.location.reload()}
-                        className="px-4 py-2 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
+                        className="px-4 py-2 bg-blue-500 text-white rounded text-xs sm:text-sm hover:bg-blue-600 touch-manipulation"
                       >
                         刷新重试
                       </button>
                     </div>
                   </div>
                 ) : (
-                  <canvas ref={canvasRef}></canvas>
+                  <canvas ref={canvasRef} className="max-w-full h-auto"></canvas>
                 )}
               </div>
             </div>
             
             {!qrError && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <p className="text-sm text-blue-800 text-center">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
+                <p className="text-xs sm:text-sm text-blue-800 text-center">
                   📱 使用微信扫描上方二维码<br />
                   在微信中完成授权登录
                 </p>
@@ -117,18 +117,18 @@ function QRLoginContent() {
             <div className="text-center">
               <button
                 onClick={() => router.push('/login')}
-                className="text-sm text-gray-500 hover:text-gray-700"
+                className="text-xs sm:text-sm text-gray-500 hover:text-gray-700 touch-manipulation py-2"
               >
                 返回登录页面
               </button>
             </div>
           </div>
         ) : (
-          <div className="text-center py-12">
-            <p className="text-gray-600 mb-4">获取授权链接失败</p>
+          <div className="text-center py-8 sm:py-12">
+            <p className="text-sm sm:text-base text-gray-600 mb-4">获取授权链接失败</p>
             <button
               onClick={() => router.push('/login')}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+              className="px-4 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm sm:text-base touch-manipulation"
             >
               返回登录页面
             </button>

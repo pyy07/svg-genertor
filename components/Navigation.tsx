@@ -22,25 +22,25 @@ export default function Navigation({ user, onLogout }: NavigationProps) {
 
   return (
     <nav className="bg-white border-b border-gray-200 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex items-center">
-            <div className="flex-shrink-0 flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center text-white font-bold text-sm">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+        <div className="flex justify-between items-center h-14 sm:h-16">
+          <div className="flex items-center flex-1 min-w-0">
+            <div className="flex-shrink-0 flex items-center gap-1.5 sm:gap-2">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center text-white font-bold text-xs sm:text-sm">
                 SVG
               </div>
-              <Link href="/" className="text-xl font-bold text-gray-900">
+              <Link href="/" className="text-base sm:text-xl font-bold text-gray-900 truncate">
                 SVG Generator
               </Link>
             </div>
-            <div className="hidden sm:ml-8 sm:flex sm:space-x-6">
+            <div className="hidden sm:ml-6 lg:ml-8 sm:flex sm:space-x-4 lg:space-x-6">
               {navItems.map((item) => {
                 const isActive = pathname === item.href || (item.href === '/' && pathname === '/')
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`inline-flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                    className={`inline-flex items-center px-2 sm:px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                       isActive
                         ? 'bg-orange-50 text-orange-600'
                         : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
@@ -52,14 +52,14 @@ export default function Navigation({ user, onLogout }: NavigationProps) {
               })}
             </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
             {user ? (
               <>
-                <span className="text-sm text-gray-600">{user.nickname || '用户'}</span>
+                <span className="hidden sm:inline text-sm text-gray-600 truncate max-w-[100px] lg:max-w-none">{user.nickname || '用户'}</span>
                 {onLogout && (
                   <button
                     onClick={onLogout}
-                    className="text-sm text-gray-600 hover:text-gray-900"
+                    className="text-xs sm:text-sm text-gray-600 hover:text-gray-900 px-2 py-1 sm:px-0 sm:py-0"
                   >
                     退出
                   </button>
@@ -68,11 +68,32 @@ export default function Navigation({ user, onLogout }: NavigationProps) {
             ) : (
               <Link
                 href="/login"
-                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm"
+                className="px-3 sm:px-4 py-1.5 sm:py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-xs sm:text-sm whitespace-nowrap"
               >
                 登录
               </Link>
             )}
+          </div>
+        </div>
+        {/* 移动端导航菜单 */}
+        <div className="sm:hidden border-t border-gray-200 py-2">
+          <div className="flex space-x-4">
+            {navItems.map((item) => {
+              const isActive = pathname === item.href || (item.href === '/' && pathname === '/')
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex-1 text-center py-2 text-sm font-medium rounded-md transition-colors ${
+                    isActive
+                      ? 'bg-orange-50 text-orange-600'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              )
+            })}
           </div>
         </div>
       </div>

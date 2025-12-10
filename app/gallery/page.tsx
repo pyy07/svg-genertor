@@ -60,10 +60,10 @@ export default function GalleryPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">案例展示</h1>
-          <p className="text-gray-600">
+      <main className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-8">
+        <div className="mb-4 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">案例展示</h1>
+          <p className="text-sm sm:text-base text-gray-600">
             浏览所有用户生成的精美 SVG 动画作品
           </p>
         </div>
@@ -88,7 +88,7 @@ export default function GalleryPage() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
               {assets.map((asset) => (
                 <Link
                   key={asset.id}
@@ -101,8 +101,8 @@ export default function GalleryPage() {
                       dangerouslySetInnerHTML={{ __html: asset.svgCode }}
                     />
                   </div>
-                  <div className="p-4">
-                    <p className="text-sm text-gray-700 line-clamp-2 mb-2 group-hover:text-blue-600 transition-colors">
+                  <div className="p-3 sm:p-4">
+                    <p className="text-xs sm:text-sm text-gray-700 line-clamp-2 mb-2 group-hover:text-blue-600 transition-colors">
                       {asset.description}
                     </p>
                     <div className="text-xs text-gray-500 space-y-1">
@@ -129,11 +129,11 @@ export default function GalleryPage() {
             </div>
 
             {hasMore && (
-              <div className="mt-12 text-center">
+              <div className="mt-8 sm:mt-12 text-center">
                 <button
                   onClick={loadMore}
                   disabled={loading}
-                  className="px-6 py-3 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                  className="px-6 py-2.5 sm:py-3 bg-white border border-gray-300 rounded-lg text-sm sm:text-base text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm touch-manipulation"
                 >
                   {loading ? '加载中...' : '加载更多'}
                 </button>
