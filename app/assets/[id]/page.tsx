@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react'
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 
 type ContentType = 'svg' | 'html'
 
@@ -23,9 +23,17 @@ interface Asset {
 
 export default function AssetDetailPage() {
   const params = useParams()
+  const router = useRouter()
   const [asset, setAsset] = useState<Asset | null>(null)
   const [loading, setLoading] = useState(true)
   const [copied, setCopied] = useState(false)
+
+  const handleBack = () => {
+    // 直接使用浏览器历史记录返回上一页
+    // 如果是从其他页面进入的，会返回到那个页面
+    // 如果是直接访问的，会返回到浏览器历史记录的上一页
+    router.back()
+  }
 
   useEffect(() => {
     if (params.id) {
@@ -96,12 +104,12 @@ export default function AssetDetailPage() {
     <main className="min-h-screen p-3 sm:p-4 lg:p-8">
       <div className="max-w-4xl mx-auto">
         <header className="mb-4 sm:mb-8">
-          <Link
-            href="/assets"
+          <button
+            onClick={handleBack}
             className="text-sm sm:text-base text-blue-500 hover:text-blue-700 mb-2 sm:mb-4 inline-block touch-manipulation"
           >
-            ← 返回素材列表
-          </Link>
+            ← 返回
+          </button>
           <div className="flex items-center gap-3 mb-1 sm:mb-2">
             <h1 className="text-2xl sm:text-3xl font-bold">素材详情</h1>
             <span className={`px-2 py-0.5 text-xs rounded ${
