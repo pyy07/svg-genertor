@@ -5,13 +5,26 @@ export class OpenAIProvider implements AIProviderInterface {
   readonly name = 'openai' as const
   private client: OpenAI | null = null
   private apiKey: string | undefined
+  private baseURL: string | undefined
 
   constructor() {
     this.apiKey = process.env.OPENAI_API_KEY
+    this.baseURL = process.env.OPENAI_BASE_URL
+    
     if (this.apiKey) {
-      this.client = new OpenAI({
+      const config: {
+        apiKey: string
+        baseURL?: string
+      } = {
         apiKey: this.apiKey,
-      })
+      }
+      
+      // 如果配置了 BASE_URL，使用自定义端点（可用于代理或兼容 API）
+      if (this.baseURL) {
+        config.baseURL = this.baseURL
+      }
+      
+      this.client = new OpenAI(config)
     }
   }
 
