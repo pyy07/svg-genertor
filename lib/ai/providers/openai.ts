@@ -33,12 +33,15 @@ export class OpenAIProvider implements AIProviderInterface {
   }
 
   getAvailableModels(): string[] {
-    return [
-      'gpt-4o',
-      'gpt-4-turbo',
-      'gpt-4',
-      'gpt-3.5-turbo',
-    ]
+    // 从环境变量读取配置的模型列表
+    const modelsEnv = process.env.OPENAI_MODELS
+    
+    if (!modelsEnv) {
+      // 如果没有配置，返回空数组（不允许使用）
+      return []
+    }
+
+    return modelsEnv.split(',').map((m) => m.trim()).filter(Boolean)
   }
 
   async generateSVG(description: string, model?: string): Promise<string> {

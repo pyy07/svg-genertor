@@ -121,64 +121,102 @@ npm run dev
 
 ## AI Provider 配置
 
-项目支持多个 AI 模型提供商，使用 Provider 模式实现：
+项目支持多个 AI 模型提供商，使用 Provider 模式实现。**重要：配置文件决定前端显示哪些选项，用户只能选择配置文件中允许的 Provider 和模型。**
+
+### 配置方式
+
+配置文件（环境变量）控制：
+1. **启用哪些 Provider**：通过 `AI_PROVIDERS` 配置
+2. **每个 Provider 允许使用哪些模型**：通过 `GEMINI_MODELS` 和 `OPENAI_MODELS` 配置
+3. **前端显示**：前端通过 `/api/providers` 接口获取配置，只显示配置文件中允许的选项
+4. **用户选择**：用户只能在前端选择配置文件中允许的 Provider 和模型
 
 ### 支持的 Provider
 
 1. **Google Gemini** (`gemini`)
    - 需要配置 `GOOGLE_AI_API_KEY`
+   - 需要配置 `GEMINI_MODELS`（允许使用的模型列表）
    - 可用模型：`gemini-2.0-flash-exp`、`gemini-1.5-pro`、`gemini-1.5-flash`、`gemini-pro`
-   - 默认模型：`gemini-2.0-flash-exp`
 
 2. **OpenAI** (`openai`)
    - 需要配置 `OPENAI_API_KEY`
+   - 需要配置 `OPENAI_MODELS`（允许使用的模型列表）
    - 可用模型：`gpt-4o`、`gpt-4-turbo`、`gpt-4`、`gpt-3.5-turbo`
-   - 默认模型：`gpt-4o`
 
-### 使用方式
+### 配置示例
 
-1. **配置环境变量**：至少配置一个 Provider 的 API Key
-2. **前端选择**：在生成页面可以选择使用的 Provider 和模型
-3. **默认 Provider**：如果配置了 `AI_PROVIDER`，将作为前端默认选择
-
-### Provider 优先级说明
-
-当同时存在多种配置方式时，优先级如下：
-
-1. **前端用户选择**（最高优先级）
-   - 用户在页面上选择的 Provider 和模型
-   - 会覆盖所有其他配置
-
-2. **环境变量 `AI_PROVIDER`**
-   - 如果配置了 `AI_PROVIDER`，前端会默认选中该 Provider
-   - 如果用户没有手动选择，后端也会使用该 Provider
-
-3. **自动检测**（最低优先级）
-   - 如果未配置 `AI_PROVIDER`，系统会自动检测已配置的 Provider
-   - 优先顺序：Gemini > OpenAI
-   - 如果只配置了一个 Provider，自动使用该 Provider
-
-**示例场景：**
-- 场景1：配置了 `AI_PROVIDER=openai`，前端默认选中 OpenAI，用户可以选择切换
-- 场景2：未配置 `AI_PROVIDER`，但配置了 Gemini 和 OpenAI，前端默认选中 Gemini（自动检测）
-- 场景3：用户在前端选择了 OpenAI，即使配置了 `AI_PROVIDER=gemini`，也会使用 OpenAI（用户选择优先）
-
-### 示例配置
+#### 示例1：只启用 Gemini Provider
 
 ```env
-# 配置 Gemini Provider
+# 启用 Gemini Provider
+AI_PROVIDERS=gemini
+
+# Gemini API Key
 GOOGLE_AI_API_KEY=your-gemini-api-key
-GEMINI_MODEL=gemini-2.0-flash-exp
 
-# 配置 OpenAI Provider
-OPENAI_API_KEY=your-openai-api-key
-OPENAI_MODEL=gpt-4o
-# 使用代理或兼容 API（可选）
-OPENAI_BASE_URL=https://api.openai-proxy.com/v1
-
-# 设置默认 Provider（可选）
-AI_PROVIDER=gemini
+# Gemini 允许使用的模型（只允许这两个）
+GEMINI_MODELS=gemini-2.0-flash-exp,gemini-1.5-pro
 ```
+
+前端只会显示：
+- Provider: Google Gemini
+- 模型: gemini-2.0-flash-exp, gemini-1.5-pro
+
+#### 示例2：启用多个 Provider，限制模型
+
+```env
+# 启用多个 Provider
+AI_PROVIDERS=gemini,openai
+
+# 默认 Provider
+AI_PROVIDER=openai
+
+# Gemini 配置
+GOOGLE_AI_API_KEY=your-gemini-api-key
+GEMINI_MODELS=gemini-2.0-flash-exp
+
+# OpenAI 配置
+OPENAI_API_KEY=your-openai-api-key
+OPENAI_MODELS=gpt-4o,gpt-4-turbo
+# 使用代理（可选）
+OPENAI_BASE_URL=https://api.openai-proxy.com/v1
+```
+
+前端会显示：
+- Provider: Google Gemini, OpenAI（默认选中 OpenAI）
+- Gemini 模型: gemini-2.0-flash-exp
+- OpenAI 模型: gpt-4o, gpt-4-turbo
+
+#### 示例3：只允许使用特定模型
+
+```env
+AI_PROVIDERS=openai
+OPENAI_API_KEY=your-openai-api-key
+# 只允许使用 gpt-4o
+OPENAI_MODELS=gpt-4o
+```
+
+前端只会显示：
+- Provider: OpenAI
+- 模型: gpt-4o（用户无法选择其他模型）
+
+### 配置说明
+
+**必填项：**
+- `AI_PROVIDERS`：启用哪些 Provider（格式：`gemini,openai`）
+- 对应 Provider 的 API Key（`GOOGLE_AI_API_KEY` 或 `OPENAI_API_KEY`）
+- 对应 Provider 的模型列表（`GEMINI_MODELS` 或 `OPENAI_MODELS`）
+
+**可选项：**
+- `AI_PROVIDER`：默认 Provider（如果不配置，使用 `AI_PROVIDERS` 中的第一个）
+- `OPENAI_BASE_URL`：OpenAI API 基础 URL（用于代理或兼容 API）
+
+**工作原理：**
+1. 后端读取 `AI_PROVIDERS` 和模型列表配置
+2. 前端调用 `/api/providers` 获取允许的 Provider 和模型
+3. 前端只显示配置文件中允许的选项
+4. 用户选择后，后端验证选择的 Provider 和模型是否在允许列表中
+5. 如果不在允许列表中，返回错误
 
 ### OpenAI BASE_URL 配置说明
 

@@ -1,6 +1,12 @@
 import type { AIProvider, AIProviderInterface } from './types'
 import { GeminiProvider } from './providers/gemini'
 import { OpenAIProvider } from './providers/openai'
+import {
+  getConfiguredProviders as getConfigProviders,
+  getDefaultProvider as getConfigDefaultProvider,
+  isProviderAllowed,
+  isModelAllowed,
+} from './config'
 
 // Provider 实例缓存
 const providerCache = new Map<AIProvider, AIProviderInterface>()
@@ -9,6 +15,11 @@ const providerCache = new Map<AIProvider, AIProviderInterface>()
  * 获取 AI Provider 实例
  */
 export function getAIProvider(provider: AIProvider): AIProviderInterface {
+  // 验证 provider 是否在允许列表中
+  if (!isProviderAllowed(provider)) {
+    throw new Error(`Provider ${provider} 未在配置文件中启用`)
+  }
+
   // 使用缓存避免重复创建
   if (providerCache.has(provider)) {
     return providerCache.get(provider)!
@@ -34,41 +45,15 @@ export function getAIProvider(provider: AIProvider): AIProviderInterface {
 /**
  * 获取默认的 AI Provider
  */
-export function getDefaultProvider(): AIProvider {
-  const configuredProvider = process.env.AI_PROVIDER as AIProvider | undefined
-  
-  if (configuredProvider && ['gemini', 'openai'].includes(configuredProvider)) {
-    return configuredProvider
-  }
-
-  // 检查哪个 provider 已配置
-  if (process.env.GOOGLE_AI_API_KEY) {
-    return 'gemini'
-  }
-  
-  if (process.env.OPENAI_API_KEY) {
-    return 'openai'
-  }
-
-  // 默认使用 gemini
-  return 'gemini'
+export function getDefaultProvider(): AIProvider | null {
+  return getConfigDefaultProvider()
 }
 
 /**
  * 获取所有已配置的 Provider
  */
 export function getConfiguredProviders(): AIProvider[] {
-  const providers: AIProvider[] = []
-  
-  if (process.env.GOOGLE_AI_API_KEY) {
-    providers.push('gemini')
-  }
-  
-  if (process.env.OPENAI_API_KEY) {
-    providers.push('openai')
-  }
-  
-  return providers
+  return getConfigProviders()
 }
 
 /**
@@ -81,11 +66,27 @@ export async function generateSVG(
     model?: string
   }
 ): Promise<string> {
+  // 确定使用的 provider
   const provider = options?.provider || getDefaultProvider()
+  
+  if (!provider) {
+    throw new Error('没有配置任何 AI Provider，请在环境变量中配置 AI_PROVIDERS')
+  }
+
+  // 验证 provider 是否在允许列表中
+  if (!isProviderAllowed(provider)) {
+    throw new Error(`Provider ${provider} 未在配置文件中启用`)
+  }
+
   const providerInstance = getAIProvider(provider)
   
   if (!providerInstance.isConfigured()) {
     throw new Error(`${provider} Provider 未配置，请检查环境变量`)
+  }
+
+  // 如果指定了模型，验证模型是否在允许列表中
+  if (options?.model && !isModelAllowed(provider, options.model)) {
+    throw new Error(`模型 ${options.model} 未在配置文件中启用`)
   }
 
   return providerInstance.generateSVG(description, options?.model)

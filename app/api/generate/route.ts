@@ -3,6 +3,7 @@ import { generateSVG } from '@/lib/ai/factory'
 import { checkUserUsageLimit, incrementUserUsage } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import type { AIProvider } from '@/lib/ai/types'
+import { isProviderAllowed, isModelAllowed } from '@/lib/ai/config'
 
 export async function POST(request: NextRequest) {
   try {
@@ -41,6 +42,24 @@ export async function POST(request: NextRequest) {
             remaining: usageCheck.remaining,
           },
           { status: 403 }
+        )
+      }
+    }
+
+    // 验证 provider 和 model 是否在允许列表中
+    if (provider) {
+      const providerName = provider as AIProvider
+      if (!isProviderAllowed(providerName)) {
+        return NextResponse.json(
+          { error: `Provider ${providerName} 未在配置文件中启用` },
+          { status: 400 }
+        )
+      }
+      
+      if (model && !isModelAllowed(providerName, model)) {
+        return NextResponse.json(
+          { error: `模型 ${model} 未在配置文件中启用` },
+          { status: 400 }
         )
       }
     }

@@ -18,12 +18,15 @@ export class GeminiProvider implements AIProviderInterface {
   }
 
   getAvailableModels(): string[] {
-    return [
-      'gemini-2.0-flash-exp',
-      'gemini-1.5-pro',
-      'gemini-1.5-flash',
-      'gemini-pro',
-    ]
+    // 从环境变量读取配置的模型列表
+    const modelsEnv = process.env.GEMINI_MODELS
+    
+    if (!modelsEnv) {
+      // 如果没有配置，返回空数组（不允许使用）
+      return []
+    }
+
+    return modelsEnv.split(',').map((m) => m.trim()).filter(Boolean)
   }
 
   async generateSVG(description: string, model?: string): Promise<string> {

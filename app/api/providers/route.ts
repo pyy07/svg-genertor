@@ -4,31 +4,46 @@ import type { AIProvider } from '@/lib/ai/types'
 
 /**
  * 获取所有可用的 AI Provider 和模型列表
+ * 只返回配置文件中允许的 Provider 和模型
  */
 export async function GET() {
   try {
     const configuredProviders = getConfiguredProviders()
     
-    const providers = configuredProviders.map((providerName) => {
-      const provider = getAIProvider(providerName)
-      return {
-        name: providerName,
-        configured: provider.isConfigured(),
-        models: provider.getAvailableModels(),
-      }
-    })
-
-    // 获取默认 Provider（考虑环境变量 AI_PROVIDER）
-    const defaultProvider = getDefaultProvider()
+    if (configuredProviders.length === 0) {
+      return NextResponse.json({
+        providers: [],
+        defaultProvider: null,
+        error: '没有配置任何 AI Provider，请在环境变量中配置 AI_PROVIDERS',
+      })
+    }
     
-    // 确保默认 Provider 在已配置的列表中，否则使用第一个
-    const validDefaultProvider = configuredProviders.includes(defaultProvider)
-      ? defaultProvider
-      : configuredProviders[0] || null
+    const providers = configuredProviders.map((providerName) => {
+      try {
+        const provider = getAIProvider(providerName)
+        const models = provider.getAvailableModels()
+        
+        return {
+          name: providerName,
+          configured: provider.isConfigured(),
+          models: models, // 只返回配置文件中允许的模型
+        }
+      } catch (error) {
+        // 如果 provider 未启用，跳过
+        return null
+      }
+    }).filter((p) => p !== null) as Array<{
+      name: AIProvider
+      configured: boolean
+      models: string[]
+    }>
+
+    // 获取默认 Provider
+    const defaultProvider = getDefaultProvider()
 
     return NextResponse.json({
       providers,
-      defaultProvider: validDefaultProvider,
+      defaultProvider,
     })
   } catch (error) {
     console.error('获取 Provider 列表错误:', error)
