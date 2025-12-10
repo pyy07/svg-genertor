@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { generateSVG } from '@/lib/gemini'
+import { generateSVG } from '@/lib/ai/factory'
 import { checkUserUsageLimit, incrementUserUsage } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import type { AIProvider } from '@/lib/ai/types'
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { description, userId } = body
+    const { description, userId, provider, model } = body
 
     if (!description || typeof description !== 'string') {
       return NextResponse.json(
@@ -44,8 +45,11 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 生成 SVG
-    const svgCode = await generateSVG(description)
+    // 生成 SVG（支持指定 provider 和 model）
+    const svgCode = await generateSVG(description, {
+      provider: provider as AIProvider | undefined,
+      model: model as string | undefined,
+    })
 
     // 如果已登录，保存素材并增加使用次数
     if (userId) {

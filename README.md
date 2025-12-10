@@ -5,6 +5,7 @@
 ## 功能特性
 
 - 🎨 根据自然语言描述生成 SVG 动画
+- 🤖 支持多个 AI 模型提供商（Google Gemini、OpenAI）
 - 🔐 用户使用次数限制（默认 3 次）
 - 🔑 微信登录支持
 - 💾 素材自动保存和管理
@@ -15,7 +16,7 @@
 - **框架**: Next.js 14 (App Router)
 - **语言**: TypeScript
 - **数据库**: PostgreSQL (Prisma ORM)
-- **AI**: Google Gemini 3.0 API
+- **AI**: Google Gemini API / OpenAI API（支持多 Provider）
 - **认证**: NextAuth.js + 微信 OAuth
 - **样式**: Tailwind CSS
 
@@ -37,12 +38,17 @@ cp .env.example .env
 
 需要配置的变量（详见 `.env.example`）：
 - `DATABASE_URL`: PostgreSQL 数据库连接字符串
-- `GOOGLE_AI_API_KEY`: Google AI Studio API Key
+- **AI Provider 配置**（至少配置一个）：
+  - `GOOGLE_AI_API_KEY`: Google AI Studio API Key（Gemini Provider）
+  - `OPENAI_API_KEY`: OpenAI API Key（OpenAI Provider）
+  - `AI_PROVIDER`: 默认使用的 Provider（`gemini` 或 `openai`，可选）
+  - `GEMINI_MODEL`: Gemini 模型名称（默认：`gemini-2.0-flash-exp`）
+  - `OPENAI_MODEL`: OpenAI 模型名称（默认：`gpt-4o`）
 - `NEXTAUTH_SECRET`: NextAuth 密钥
 - `WECHAT_APP_ID`: 微信开放平台 AppID（可选）
 - `WECHAT_APP_SECRET`: 微信开放平台 AppSecret（可选）
 - `ALLOW_ANONYMOUS`: 允许匿名访问（本地测试用，设置为 `true` 时无需登录即可生成 SVG）
-- `HTTPS_PROXY` 或 `HTTP_PROXY`: 代理地址（如果需要通过代理访问 Google API，格式：`http://127.0.0.1:7890` 或 `socks5://127.0.0.1:7890`）
+- `HTTPS_PROXY` 或 `HTTP_PROXY`: 代理地址（如果需要通过代理访问 API，格式：`http://127.0.0.1:7890` 或 `socks5://127.0.0.1:7890`）
 
 详细配置说明请参考 `.env.example` 文件中的注释。
 
@@ -74,7 +80,12 @@ npm run dev
 ├── components/            # React 组件
 ├── lib/                   # 工具函数
 │   ├── prisma.ts         # Prisma 客户端
-│   ├── gemini.ts         # Gemini API 封装
+│   ├── ai/               # AI Provider 抽象层
+│   │   ├── types.ts      # Provider 类型定义
+│   │   ├── factory.ts    # Provider 工厂函数
+│   │   └── providers/    # 具体 Provider 实现
+│   │       ├── gemini.ts # Gemini Provider
+│   │       └── openai.ts # OpenAI Provider
 │   └── auth.ts           # 认证相关函数
 ├── prisma/               # Prisma schema
 └── public/               # 静态资源
@@ -97,6 +108,43 @@ npm run dev
 2. 获取连接字符串
 3. 在环境变量中配置 `DATABASE_URL`
 4. 运行 `npx prisma migrate deploy` 部署数据库 schema
+
+## AI Provider 配置
+
+项目支持多个 AI 模型提供商，使用 Provider 模式实现：
+
+### 支持的 Provider
+
+1. **Google Gemini** (`gemini`)
+   - 需要配置 `GOOGLE_AI_API_KEY`
+   - 可用模型：`gemini-2.0-flash-exp`、`gemini-1.5-pro`、`gemini-1.5-flash`、`gemini-pro`
+   - 默认模型：`gemini-2.0-flash-exp`
+
+2. **OpenAI** (`openai`)
+   - 需要配置 `OPENAI_API_KEY`
+   - 可用模型：`gpt-4o`、`gpt-4-turbo`、`gpt-4`、`gpt-3.5-turbo`
+   - 默认模型：`gpt-4o`
+
+### 使用方式
+
+1. **配置环境变量**：至少配置一个 Provider 的 API Key
+2. **前端选择**：在生成页面可以选择使用的 Provider 和模型
+3. **默认 Provider**：如果配置了 `AI_PROVIDER`，将作为默认选择
+
+### 示例配置
+
+```env
+# 配置 Gemini Provider
+GOOGLE_AI_API_KEY=your-gemini-api-key
+GEMINI_MODEL=gemini-2.0-flash-exp
+
+# 配置 OpenAI Provider
+OPENAI_API_KEY=your-openai-api-key
+OPENAI_MODEL=gpt-4o
+
+# 设置默认 Provider（可选）
+AI_PROVIDER=gemini
+```
 
 ## 本地测试模式
 

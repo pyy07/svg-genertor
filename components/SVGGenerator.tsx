@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 interface SVGGeneratorProps {
   userId?: string
@@ -8,6 +8,12 @@ interface SVGGeneratorProps {
   isLoggedIn: boolean
   allowAnonymous?: boolean
   onLoginRequest: () => void
+}
+
+interface Provider {
+  name: string
+  configured: boolean
+  models: string[]
 }
 
 export default function SVGGenerator({
@@ -22,6 +28,35 @@ export default function SVGGenerator({
   const [svgCode, setSvgCode] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [currentRemaining, setCurrentRemaining] = useState(remaining)
+  const [providers, setProviders] = useState<Provider[]>([])
+  const [selectedProvider, setSelectedProvider] = useState<string>('')
+  const [selectedModel, setSelectedModel] = useState<string>('')
+
+  useEffect(() => {
+    // 获取可用的 providers
+    fetch('/api/providers')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.providers && data.providers.length > 0) {
+          setProviders(data.providers)
+          setSelectedProvider(data.providers[0].name)
+          if (data.providers[0].models.length > 0) {
+            setSelectedModel(data.providers[0].models[0])
+          }
+        }
+      })
+      .catch((error) => {
+        console.error('获取 Provider 列表失败:', error)
+      })
+  }, [])
+
+  // 当选择的 provider 改变时，更新 model
+  useEffect(() => {
+    const provider = providers.find((p) => p.name === selectedProvider)
+    if (provider && provider.models.length > 0) {
+      setSelectedModel(provider.models[0])
+    }
+  }, [selectedProvider, providers])
 
   const handleGenerate = async () => {
     if (!description.trim()) {
@@ -55,6 +90,8 @@ export default function SVGGenerator({
         body: JSON.stringify({
           description,
           userId: userId || undefined, // 匿名访问时不传 userId
+          provider: selectedProvider || undefined,
+          model: selectedModel || undefined,
         }),
       })
 
@@ -109,6 +146,49 @@ export default function SVGGenerator({
           </p>
         )}
       </div>
+
+      {/* Provider 和 Model 选择 */}
+      {providers.length > 0 && (
+        <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              AI 模型提供商
+            </label>
+            <select
+              value={selectedProvider}
+              onChange={(e) => setSelectedProvider(e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={loading}
+            >
+              {providers.map((provider) => (
+                <option key={provider.name} value={provider.name}>
+                  {provider.name === 'gemini' ? 'Google Gemini' : 'OpenAI'} 
+                  {provider.configured ? '' : ' (未配置)'}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              模型
+            </label>
+            <select
+              value={selectedModel}
+              onChange={(e) => setSelectedModel(e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={loading || !selectedProvider}
+            >
+              {providers
+                .find((p) => p.name === selectedProvider)
+                ?.models.map((model) => (
+                  <option key={model} value={model}>
+                    {model}
+                  </option>
+                ))}
+            </select>
+          </div>
+        </div>
+      )}
 
       <div className="mb-6">
         <textarea
