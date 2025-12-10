@@ -95,11 +95,15 @@ export default function GalleryPage() {
                   href={`/assets/${asset.id}`}
                   className="group bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200"
                 >
-                  <div className="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4 overflow-hidden relative">
-                    <div
-                      className="w-full h-full flex items-center justify-center [&_svg]:max-w-full [&_svg]:max-h-full [&_svg]:w-auto [&_svg]:h-auto"
-                      dangerouslySetInnerHTML={{ __html: asset.svgCode }}
-                    />
+                  <div className="aspect-square bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center p-3 overflow-hidden relative">
+                    <div 
+                      className="w-full h-full rounded-md overflow-hidden bg-white/80 backdrop-blur-sm flex items-center justify-center"
+                    >
+                      <div
+                        className="w-full h-full flex items-center justify-center p-2 overflow-hidden [&_svg]:max-w-full [&_svg]:max-h-full [&_svg]:w-auto [&_svg]:h-auto"
+                        dangerouslySetInnerHTML={{ __html: asset.svgCode }}
+                      />
+                    </div>
                   </div>
                   <div className="p-3 sm:p-4">
                     <p className="text-xs sm:text-sm text-gray-700 line-clamp-2 mb-2 group-hover:text-blue-600 transition-colors">
