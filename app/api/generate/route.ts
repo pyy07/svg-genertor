@@ -8,7 +8,7 @@ import { isProviderAllowed, isModelAllowed } from '@/lib/ai/config'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { description, userId, provider, model } = body
+    const { description, userId, provider, model, baseSVG, baseDescription, baseAssetId } = body
 
     if (!description || typeof description !== 'string') {
       return NextResponse.json(
@@ -64,26 +64,41 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 生成 SVG（支持指定 provider 和 model）
+    // 如果提供了 baseAssetId，获取原 SVG 代码
+    let baseSVGCode = baseSVG
+    let baseDesc = baseDescription
+    
+    if (baseAssetId && !baseSVGCode) {
+      const baseAsset = await prisma.asset.findUnique({
+        where: { id: baseAssetId },
+        select: { svgCode: true, description: true },
+      })
+      if (baseAsset) {
+        baseSVGCode = baseAsset.svgCode
+        baseDesc = baseAsset.description
+      }
+    }
+
+    // 生成 SVG（支持指定 provider 和 model，以及基于原 SVG 修改）
     const svgCode = await generateSVG(description, {
       provider: provider as AIProvider | undefined,
       model: model as string | undefined,
+      baseSVG: baseSVGCode,
+      baseDescription: baseDesc,
     })
 
-    // 如果已登录，保存素材并增加使用次数
+    // 保存素材（无论是否登录）
+    const asset = await prisma.asset.create({
+      data: {
+        userId: userId || null, // 如果未登录，userId 为 null
+        description,
+        svgCode,
+      },
+    })
+
+    // 如果已登录，增加使用次数
     if (userId) {
-      const asset = await prisma.asset.create({
-        data: {
-          userId,
-          description,
-          svgCode,
-        },
-      })
-
-      // 增加用户使用次数（如果不是永久用户）
       await incrementUserUsage(userId)
-
-      // 获取更新后的剩余次数
       const updatedUsageCheck = await checkUserUsageLimit(userId)
 
       return NextResponse.json({
@@ -93,10 +108,11 @@ export async function POST(request: NextRequest) {
         remaining: updatedUsageCheck.remaining,
       })
     } else {
-      // 匿名访问，不保存素材，不限制次数
+      // 匿名访问，不限制次数
       return NextResponse.json({
         success: true,
         svgCode,
+        assetId: asset.id,
         remaining: -1, // 匿名访问显示无限制
       })
     }

@@ -64,6 +64,8 @@ export async function generateSVG(
   options?: {
     provider?: AIProvider
     model?: string
+    baseSVG?: string
+    baseDescription?: string
   }
 ): Promise<string> {
   // 确定使用的 provider
@@ -89,6 +91,11 @@ export async function generateSVG(
     throw new Error(`模型 ${options.model} 未在配置文件中启用`)
   }
 
-  return providerInstance.generateSVG(description, options?.model)
+  return providerInstance.generateSVG(
+    description,
+    options?.model,
+    options?.baseSVG,
+    options?.baseDescription
+  )
 }
 

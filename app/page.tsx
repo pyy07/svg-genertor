@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import SVGGenerator from '@/components/SVGGenerator'
+import SVGPreview from '@/components/SVGPreview'
+import Navigation from '@/components/Navigation'
 
 interface User {
   id: string
@@ -17,6 +19,8 @@ export default function Home() {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [allowAnonymous, setAllowAnonymous] = useState(false)
+  const [svgCode, setSvgCode] = useState<string | null>(null)
+  const [svgLoading, setSvgLoading] = useState(false)
 
   useEffect(() => {
     // 检查是否允许匿名访问
@@ -112,63 +116,38 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen p-8">
-      <div className="max-w-6xl mx-auto">
-        <header className="mb-8 flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold">SVG 动画生成器</h1>
-            <p className="text-gray-600 mt-2">
-              {user
-                ? `欢迎，${user.nickname || '用户'}！`
-                : '根据您的描述生成精美的 SVG 动画'}
-            </p>
+    <div className="min-h-screen bg-gray-50">
+      <Navigation user={user || undefined} onLogout={handleLogout} />
+      <main className="h-[calc(100vh-4rem)] flex">
+        {/* 左侧预览区域 */}
+        <div className="flex-1 bg-white p-6 flex flex-col border-r border-gray-200">
+          <div className="mb-4">
+            <h2 className="text-gray-900 text-lg font-medium">动画预览</h2>
           </div>
-          <div className="text-right">
-            {user ? (
-              <div className="flex flex-col items-end gap-2">
-                <div className="flex items-center gap-4">
-                  <p className="text-sm text-gray-600">
-                    剩余次数:{' '}
-                    {user.remaining === -1 ? '无限制' : user.remaining}
-                  </p>
-                  <a
-                    href="/assets"
-                    className="text-blue-500 hover:text-blue-700 text-sm"
-                  >
-                    我的素材
-                  </a>
-                  <button
-                    onClick={handleLogout}
-                    className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded hover:bg-gray-50"
-                  >
-                    退出登录
-                  </button>
-                </div>
-                {user.nickname && (
-                  <p className="text-xs text-gray-500">
-                    {user.nickname}
-                  </p>
-                )}
-              </div>
-            ) : (
-              <button
-                onClick={handleWechatLogin}
-                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 text-sm"
-              >
-                微信登录
-              </button>
-            )}
+          <div className="flex-1 bg-white rounded-lg border border-gray-300 overflow-auto shadow-sm">
+            <SVGPreview svgCode={svgCode} loading={svgLoading} />
           </div>
-        </header>
+        </div>
 
-        <SVGGenerator
-          userId={user?.id}
-          remaining={user?.remaining ?? 0}
-          isLoggedIn={!!user}
-          allowAnonymous={allowAnonymous}
-          onLoginRequest={handleWechatLogin}
-        />
-      </div>
-    </main>
+        {/* 右侧控制面板 */}
+        <div className="w-96 bg-white border-l border-gray-200 overflow-y-auto">
+          <div className="p-6">
+            <SVGGenerator
+              userId={user?.id}
+              remaining={user?.remaining ?? 0}
+              isLoggedIn={!!user}
+              allowAnonymous={allowAnonymous}
+              onLoginRequest={handleWechatLogin}
+              svgCode={svgCode}
+              onSVGGenerated={(code) => {
+                setSvgCode(code)
+                setSvgLoading(false)
+              }}
+              onLoadingChange={(loading) => setSvgLoading(loading)}
+            />
+          </div>
+        </div>
+      </main>
+    </div>
   )
 }
