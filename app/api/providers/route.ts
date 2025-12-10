@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getConfiguredProviders, getAIProvider } from '@/lib/ai/factory'
+import { getConfiguredProviders, getAIProvider, getDefaultProvider } from '@/lib/ai/factory'
 import type { AIProvider } from '@/lib/ai/types'
 
 /**
@@ -18,9 +18,17 @@ export async function GET() {
       }
     })
 
+    // 获取默认 Provider（考虑环境变量 AI_PROVIDER）
+    const defaultProvider = getDefaultProvider()
+    
+    // 确保默认 Provider 在已配置的列表中，否则使用第一个
+    const validDefaultProvider = configuredProviders.includes(defaultProvider)
+      ? defaultProvider
+      : configuredProviders[0] || null
+
     return NextResponse.json({
       providers,
-      defaultProvider: configuredProviders[0] || null,
+      defaultProvider: validDefaultProvider,
     })
   } catch (error) {
     console.error('获取 Provider 列表错误:', error)

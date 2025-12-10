@@ -39,9 +39,15 @@ export default function SVGGenerator({
       .then((data) => {
         if (data.providers && data.providers.length > 0) {
           setProviders(data.providers)
-          setSelectedProvider(data.providers[0].name)
-          if (data.providers[0].models.length > 0) {
-            setSelectedModel(data.providers[0].models[0])
+          
+          // 使用后端返回的默认 Provider（考虑环境变量配置）
+          const defaultProvider = data.defaultProvider || data.providers[0].name
+          setSelectedProvider(defaultProvider)
+          
+          // 设置对应 Provider 的默认模型
+          const provider = data.providers.find((p: Provider) => p.name === defaultProvider) || data.providers[0]
+          if (provider.models.length > 0) {
+            setSelectedModel(provider.models[0])
           }
         }
       })

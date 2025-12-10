@@ -139,7 +139,29 @@ npm run dev
 
 1. **配置环境变量**：至少配置一个 Provider 的 API Key
 2. **前端选择**：在生成页面可以选择使用的 Provider 和模型
-3. **默认 Provider**：如果配置了 `AI_PROVIDER`，将作为默认选择
+3. **默认 Provider**：如果配置了 `AI_PROVIDER`，将作为前端默认选择
+
+### Provider 优先级说明
+
+当同时存在多种配置方式时，优先级如下：
+
+1. **前端用户选择**（最高优先级）
+   - 用户在页面上选择的 Provider 和模型
+   - 会覆盖所有其他配置
+
+2. **环境变量 `AI_PROVIDER`**
+   - 如果配置了 `AI_PROVIDER`，前端会默认选中该 Provider
+   - 如果用户没有手动选择，后端也会使用该 Provider
+
+3. **自动检测**（最低优先级）
+   - 如果未配置 `AI_PROVIDER`，系统会自动检测已配置的 Provider
+   - 优先顺序：Gemini > OpenAI
+   - 如果只配置了一个 Provider，自动使用该 Provider
+
+**示例场景：**
+- 场景1：配置了 `AI_PROVIDER=openai`，前端默认选中 OpenAI，用户可以选择切换
+- 场景2：未配置 `AI_PROVIDER`，但配置了 Gemini 和 OpenAI，前端默认选中 Gemini（自动检测）
+- 场景3：用户在前端选择了 OpenAI，即使配置了 `AI_PROVIDER=gemini`，也会使用 OpenAI（用户选择优先）
 
 ### 示例配置
 
@@ -151,10 +173,33 @@ GEMINI_MODEL=gemini-2.0-flash-exp
 # 配置 OpenAI Provider
 OPENAI_API_KEY=your-openai-api-key
 OPENAI_MODEL=gpt-4o
+# 使用代理或兼容 API（可选）
+OPENAI_BASE_URL=https://api.openai-proxy.com/v1
 
 # 设置默认 Provider（可选）
 AI_PROVIDER=gemini
 ```
+
+### OpenAI BASE_URL 配置说明
+
+`OPENAI_BASE_URL` 允许你自定义 OpenAI API 的端点地址，常见用途：
+
+1. **使用代理服务**：如果无法直接访问 OpenAI API，可以使用代理服务
+   ```env
+   OPENAI_BASE_URL=https://api.openai-proxy.com/v1
+   ```
+
+2. **使用兼容 API**：使用兼容 OpenAI API 格式的其他服务
+   ```env
+   OPENAI_BASE_URL=https://your-compatible-api.com/v1
+   ```
+
+3. **本地测试**：使用本地运行的兼容服务进行测试
+   ```env
+   OPENAI_BASE_URL=http://localhost:8080/v1
+   ```
+
+如果不配置 `OPENAI_BASE_URL`，将使用默认的 OpenAI 官方 API 地址。
 
 ## 本地测试模式
 
