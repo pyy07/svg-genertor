@@ -30,7 +30,8 @@ model Asset {
   id          String   @id @default(cuid())
   userId      String?
   description String
-  svgCode     String   @db.Text
+  svgCode     String   @db.Text  // 生成的代码（SVG 或 HTML），保留字段名兼容现有数据
+  type        String   @default("svg")  // 内容类型：svg 或 html
   provider    String?  // AI Provider (gemini, openai, etc.)
   model       String?  // Model name (e.g., gemini-2.0-flash-exp, gpt-4o)
   createdAt   DateTime @default(now())

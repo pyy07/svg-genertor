@@ -4,10 +4,13 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Navigation from '@/components/Navigation'
 
+type ContentType = 'svg' | 'html'
+
 interface Asset {
   id: string
   description: string
   svgCode: string
+  type: ContentType
   provider?: string | null
   model?: string | null
   createdAt: string
@@ -144,11 +147,29 @@ export default function AssetsPage() {
                 href={`/assets/${asset.id}`}
                 className="group bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200"
               >
-                <div className="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4 overflow-hidden">
-                  <div
-                    className="w-full h-full flex items-center justify-center"
-                    dangerouslySetInnerHTML={{ __html: asset.svgCode }}
-                  />
+                <div className="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4 overflow-hidden relative">
+                  {/* 类型标签 */}
+                  <span className={`absolute top-2 right-2 px-2 py-0.5 text-xs rounded ${
+                    asset.type === 'html' 
+                      ? 'bg-purple-100 text-purple-700' 
+                      : 'bg-blue-100 text-blue-700'
+                  }`}>
+                    {asset.type === 'html' ? 'H5' : 'SVG'}
+                  </span>
+                  {asset.type === 'html' ? (
+                    // HTML 类型显示占位图标
+                    <div className="flex flex-col items-center justify-center text-gray-400">
+                      <svg className="w-16 h-16 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                      </svg>
+                      <span className="text-sm">H5 动画</span>
+                    </div>
+                  ) : (
+                    <div
+                      className="w-full h-full flex items-center justify-center"
+                      dangerouslySetInnerHTML={{ __html: asset.svgCode }}
+                    />
+                  )}
                 </div>
                 <div className="p-3 sm:p-4">
                       <p className="text-xs sm:text-sm text-gray-700 line-clamp-2 mb-2 group-hover:text-blue-600 transition-colors">

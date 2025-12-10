@@ -48,3 +48,87 @@ export function cleanSVGCode(rawCode: string): string {
   return cleaned
 }
 
+/**
+ * 清理和规范化 HTML 代码
+ * - 提取完整的 HTML 文档或代码片段
+ * - 移除 markdown 标记
+ * - 确保代码可以在 iframe 中运行
+ */
+export function cleanHTMLCode(rawCode: string): string {
+  if (!rawCode || typeof rawCode !== 'string') {
+    throw new Error('HTML 代码不能为空')
+  }
+
+  let cleaned = rawCode.trim()
+
+  // 1. 移除 markdown 代码块标记
+  cleaned = cleaned.replace(/```html\n?/gi, '').replace(/```\n?/g, '')
+
+  // 2. 提取 HTML 内容
+  // 尝试提取完整的 <!DOCTYPE html> 或 <html> 文档
+  const doctypeMatch = cleaned.match(/<!DOCTYPE html>[\s\S]*/i)
+  if (doctypeMatch) {
+    cleaned = doctypeMatch[0]
+  } else {
+    // 尝试提取 <html> 标签
+    const htmlMatch = cleaned.match(/<html[\s\S]*<\/html>/i)
+    if (htmlMatch) {
+      cleaned = htmlMatch[0]
+    } else {
+      // 如果没有完整的 HTML 结构，检查是否有 body 或其他内容
+      // 如果只有代码片段，包装成完整的 HTML
+      if (!cleaned.includes('<html') && !cleaned.includes('<!DOCTYPE')) {
+        // 检查是否有 body 标签
+        if (cleaned.includes('<body')) {
+          const bodyMatch = cleaned.match(/<body[\s\S]*<\/body>/i)
+          if (bodyMatch) {
+            cleaned = `<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>H5 Animation</title>
+</head>
+${bodyMatch[0]}
+</html>`
+          }
+        } else if (cleaned.includes('<style') || cleaned.includes('<div') || cleaned.includes('<canvas')) {
+          // 包装代码片段
+          cleaned = `<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>H5 Animation</title>
+</head>
+<body>
+${cleaned}
+</body>
+</html>`
+        }
+      }
+    }
+  }
+
+  // 3. 验证基本的 HTML 结构
+  if (!cleaned.includes('<html') && !cleaned.includes('<!DOCTYPE') && !cleaned.includes('<body')) {
+    // 如果完全没有 HTML 结构，尝试包装
+    cleaned = `<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>H5 Animation</title>
+</head>
+<body>
+${cleaned}
+</body>
+</html>`
+  }
+
+  // 4. 最终清理：移除前后空白
+  cleaned = cleaned.trim()
+
+  return cleaned
+}
+

@@ -1,18 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { generateSVG, getDefaultProvider, getAIProvider } from '@/lib/ai/factory'
+import { generateContent, getDefaultProvider, getAIProvider } from '@/lib/ai/factory'
 import { checkUserUsageLimit, incrementUserUsage } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import type { AIProvider } from '@/lib/ai/types'
+import type { AIProvider, ContentType } from '@/lib/ai/types'
 import { isProviderAllowed, isModelAllowed } from '@/lib/ai/config'
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { description, userId, provider, model, baseSVG, baseDescription, baseAssetId } = body
+    const { 
+      description, 
+      userId, 
+      provider, 
+      model, 
+      contentType = 'svg',  // 默认为 svg
+      baseSVG, 
+      baseDescription, 
+      baseAssetId 
+    } = body
 
     if (!description || typeof description !== 'string') {
       return NextResponse.json(
         { error: '描述不能为空' },
+        { status: 400 }
+      )
+    }
+
+    // 验证 contentType
+    if (contentType && !['svg', 'html'].includes(contentType)) {
+      return NextResponse.json(
+        { error: '无效的内容类型，只支持 svg 或 html' },
         { status: 400 }
       )
     }
@@ -64,17 +81,17 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 如果提供了 baseAssetId，获取原 SVG 代码
-    let baseSVGCode = baseSVG
+    // 如果提供了 baseAssetId，获取原代码
+    let baseCode = baseSVG
     let baseDesc = baseDescription
     
-    if (baseAssetId && !baseSVGCode) {
+    if (baseAssetId && !baseCode) {
       const baseAsset = await prisma.asset.findUnique({
         where: { id: baseAssetId },
-        select: { svgCode: true, description: true },
+        select: { svgCode: true, description: true, type: true },
       })
       if (baseAsset) {
-        baseSVGCode = baseAsset.svgCode
+        baseCode = baseAsset.svgCode
         baseDesc = baseAsset.description
       }
     }
@@ -101,11 +118,12 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 生成 SVG（支持指定 provider 和 model，以及基于原 SVG 修改）
-    const svgCode = await generateSVG(description, {
+    // 生成内容（支持 SVG 和 HTML）
+    const generatedCode = await generateContent(description, {
       provider: actualProvider || undefined,
       model: actualModel || undefined,
-      baseSVG: baseSVGCode,
+      contentType: contentType as ContentType,
+      baseCode: baseCode,
       baseDescription: baseDesc,
     })
 
@@ -114,7 +132,8 @@ export async function POST(request: NextRequest) {
       data: {
         userId: userId || null, // 如果未登录，userId 为 null
         description,
-        svgCode,
+        svgCode: generatedCode,  // 保留字段名兼容
+        type: contentType,  // 新增类型字段
         provider: actualProvider,
         model: actualModel,
       },
@@ -127,7 +146,9 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({
         success: true,
-        svgCode,
+        code: generatedCode,
+        svgCode: generatedCode,  // 保留兼容
+        contentType,
         assetId: asset.id,
         remaining: updatedUsageCheck.remaining,
       })
@@ -135,14 +156,16 @@ export async function POST(request: NextRequest) {
       // 匿名访问，不限制次数
       return NextResponse.json({
         success: true,
-        svgCode,
+        code: generatedCode,
+        svgCode: generatedCode,  // 保留兼容
+        contentType,
         assetId: asset.id,
         remaining: -1, // 匿名访问显示无限制
       })
     }
   } catch (error: any) {
     // 详细错误信息记录在服务器日志中
-    console.error('生成 SVG 错误:', error)
+    console.error('生成内容错误:', error)
     console.error('错误详情:', {
       message: error.message,
       stack: error.stack,

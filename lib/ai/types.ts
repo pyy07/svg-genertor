@@ -2,6 +2,9 @@
 
 export type AIProvider = 'gemini' | 'openai'
 
+// 内容类型：SVG 或 HTML (H5动画)
+export type ContentType = 'svg' | 'html'
+
 export interface AIConfig {
   provider: AIProvider
   model?: string
@@ -12,8 +15,9 @@ export interface AIGenerateOptions {
   description: string
   provider?: AIProvider
   model?: string
-  baseSVG?: string // 基于此 SVG 进行修改
-  baseDescription?: string // 原 SVG 的描述
+  contentType?: ContentType // 生成内容类型，默认为 svg
+  baseCode?: string // 基于此代码进行修改
+  baseDescription?: string // 原代码的描述
 }
 
 export interface AIProviderInterface {
@@ -23,17 +27,18 @@ export interface AIProviderInterface {
   readonly name: AIProvider
 
   /**
-   * 生成 SVG 代码
+   * 生成内容代码（SVG 或 HTML）
    * @param description 用户描述
-   * @param model 模型名称（可选）
-   * @param baseSVG 基于此 SVG 进行修改（可选）
-   * @param baseDescription 原 SVG 的描述（可选）
+   * @param options 生成选项
    */
-  generateSVG(
+  generateContent(
     description: string,
-    model?: string,
-    baseSVG?: string,
-    baseDescription?: string
+    options?: {
+      model?: string
+      contentType?: ContentType
+      baseCode?: string
+      baseDescription?: string
+    }
   ): Promise<string>
 
   /**

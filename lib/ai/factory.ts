@@ -1,4 +1,4 @@
-import type { AIProvider, AIProviderInterface } from './types'
+import type { AIProvider, AIProviderInterface, ContentType } from './types'
 import { GeminiProvider } from './providers/gemini'
 import { OpenAIProvider } from './providers/openai'
 import {
@@ -57,14 +57,15 @@ export function getConfiguredProviders(): AIProvider[] {
 }
 
 /**
- * 生成 SVG（使用指定的或默认的 provider）
+ * 生成内容（SVG 或 HTML，使用指定的或默认的 provider）
  */
-export async function generateSVG(
+export async function generateContent(
   description: string,
   options?: {
     provider?: AIProvider
     model?: string
-    baseSVG?: string
+    contentType?: ContentType
+    baseCode?: string
     baseDescription?: string
   }
 ): Promise<string> {
@@ -91,11 +92,33 @@ export async function generateSVG(
     throw new Error(`模型 ${options.model} 未在配置文件中启用`)
   }
 
-  return providerInstance.generateSVG(
-    description,
-    options?.model,
-    options?.baseSVG,
-    options?.baseDescription
-  )
+  return providerInstance.generateContent(description, {
+    model: options?.model,
+    contentType: options?.contentType || 'svg',
+    baseCode: options?.baseCode,
+    baseDescription: options?.baseDescription,
+  })
+}
+
+/**
+ * 生成 SVG（兼容旧接口，内部调用 generateContent）
+ * @deprecated 请使用 generateContent 代替
+ */
+export async function generateSVG(
+  description: string,
+  options?: {
+    provider?: AIProvider
+    model?: string
+    baseSVG?: string
+    baseDescription?: string
+  }
+): Promise<string> {
+  return generateContent(description, {
+    provider: options?.provider,
+    model: options?.model,
+    contentType: 'svg',
+    baseCode: options?.baseSVG,
+    baseDescription: options?.baseDescription,
+  })
 }
 

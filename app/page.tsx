@@ -5,6 +5,8 @@ import SVGGenerator from '@/components/SVGGenerator'
 import SVGPreview from '@/components/SVGPreview'
 import Navigation from '@/components/Navigation'
 
+type ContentType = 'svg' | 'html'
+
 interface User {
   id: string
   nickname?: string
@@ -19,8 +21,9 @@ export default function Home() {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [allowAnonymous, setAllowAnonymous] = useState(false)
-  const [svgCode, setSvgCode] = useState<string | null>(null)
-  const [svgLoading, setSvgLoading] = useState(false)
+  const [code, setCode] = useState<string | null>(null)
+  const [contentType, setContentType] = useState<ContentType>('svg')
+  const [codeLoading, setCodeLoading] = useState(false)
 
   useEffect(() => {
     // 检查是否允许匿名访问
@@ -125,7 +128,7 @@ export default function Home() {
             <h2 className="text-gray-900 text-base sm:text-lg font-medium">动画预览</h2>
           </div>
           <div className="flex-1 bg-white rounded-lg border border-gray-300 overflow-hidden shadow-sm min-h-[300px] sm:min-h-[400px] lg:min-h-0 flex flex-col min-h-0">
-            <SVGPreview svgCode={svgCode} loading={svgLoading} />
+            <SVGPreview code={code} loading={codeLoading} contentType={contentType} />
           </div>
         </div>
 
@@ -138,12 +141,14 @@ export default function Home() {
               isLoggedIn={!!user}
               allowAnonymous={allowAnonymous}
               onLoginRequest={handleWechatLogin}
-              svgCode={svgCode}
-              onSVGGenerated={(code) => {
-                setSvgCode(code)
-                setSvgLoading(false)
+              code={code}
+              contentType={contentType}
+              onCodeGenerated={(newCode, newContentType) => {
+                setCode(newCode || null)
+                setContentType(newContentType)
+                setCodeLoading(false)
               }}
-              onLoadingChange={(loading) => setSvgLoading(loading)}
+              onLoadingChange={(loading) => setCodeLoading(loading)}
             />
           </div>
         </div>
