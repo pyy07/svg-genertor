@@ -93,14 +93,15 @@ ${baseDescription ? `原始描述：${baseDescription}\n\n` : ''}用户的新要
     } catch (error: any) {
       console.error('Gemini API 错误:', error)
       
+      // 返回用户友好的错误信息，详细错误已记录在日志中
       if (error.message?.includes('API_KEY_INVALID') || error.message?.includes('401')) {
-        throw new Error('API Key 无效，请检查 GOOGLE_AI_API_KEY 是否正确')
+        throw new Error('API Key 无效，请联系管理员检查配置')
       } else if (error.message?.includes('fetch failed') || error.message?.includes('network')) {
-        throw new Error('网络连接失败，请检查网络连接或代理设置')
+        throw new Error('网络连接失败，请稍后重试')
       } else if (error.message?.includes('quota') || error.message?.includes('429')) {
         throw new Error('API 调用次数超限，请稍后再试')
       } else {
-        throw new Error(`生成 SVG 失败: ${error.message || '未知错误'}`)
+        throw new Error('生成 SVG 失败，请稍后重试')
       }
     }
   }

@@ -208,34 +208,24 @@ ${baseDescription ? `原始描述：${baseDescription}\n\n` : ''}用户的新要
         }
       }
       
-      // 处理 HTTP 错误状态码
+      // 处理 HTTP 错误状态码（返回用户友好的错误信息，详细错误记录在日志中）
       if (status === 400) {
-        // 400 错误通常是请求参数问题，提供详细的排查建议
-        const suggestions = [
-          `检查 API Key 是否正确（当前 BASE_URL: ${this.baseURL || '默认 OpenAI API'}）`,
-          `检查模型名称 "${modelName}" 是否在 OPENAI_MODELS 配置中`,
-          `检查模型名称 "${modelName}" 是否被 API 提供商支持`,
-          '检查请求参数是否符合 API 要求（某些 API 可能不支持某些参数）',
-          '查看服务器日志获取更详细的错误信息'
-        ]
-        const errorMsg = errorDetails.includes('no body') 
-          ? '请求参数错误（响应体为空，可能是模型名称或参数不匹配）'
-          : errorDetails
-        throw new Error(`API 请求错误 (400): ${errorMsg}。\n请检查：\n${suggestions.map((s, i) => `${i + 1}) ${s}`).join('\n')}`)
+        // 400 错误：只返回简洁的用户友好提示，详细错误已记录在日志中
+        throw new Error('请求参数错误，请检查模型配置或稍后重试')
       } else if (status === 401 || errorDetails?.includes('Invalid API Key') || errorDetails?.includes('Unauthorized') || errorDetails?.includes('401')) {
-        throw new Error('API Key 无效，请检查 OPENAI_API_KEY 是否正确')
+        throw new Error('API Key 无效，请联系管理员检查配置')
       } else if (status === 403 || errorDetails?.includes('Forbidden') || errorDetails?.includes('403')) {
-        throw new Error('API 访问被拒绝，请检查 API Key 权限或 OPENAI_BASE_URL 配置')
+        throw new Error('API 访问被拒绝，请联系管理员')
       } else if (status === 404 || errorDetails?.includes('Not Found') || errorDetails?.includes('404')) {
-        throw new Error(`API 端点不存在 (404)，请检查 OPENAI_BASE_URL 配置是否正确。当前配置: ${this.baseURL || '默认 OpenAI API'}`)
+        throw new Error('API 端点不存在，请联系管理员检查配置')
       } else if (status === 429 || errorDetails?.includes('rate limit') || errorDetails?.includes('429') || errorDetails?.includes('Too Many Requests')) {
         throw new Error('API 调用次数超限，请稍后再试')
       } else if (errorDetails?.includes('network') || errorDetails?.includes('fetch') || errorDetails?.includes('ECONNREFUSED') || errorDetails?.includes('ENOTFOUND')) {
-        throw new Error(`网络连接失败，请检查网络连接或 OPENAI_BASE_URL 配置。当前配置: ${this.baseURL || '默认 OpenAI API'}`)
+        throw new Error('网络连接失败，请检查网络连接或稍后重试')
       } else if (status) {
-        throw new Error(`API 请求失败 (${status}): ${errorDetails}。请检查 API 配置`)
+        throw new Error('API 请求失败，请稍后重试')
       } else {
-        throw new Error(`生成 SVG 失败: ${errorDetails}`)
+        throw new Error('生成 SVG 失败，请稍后重试')
       }
     }
   }

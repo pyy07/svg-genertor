@@ -141,9 +141,33 @@ export async function POST(request: NextRequest) {
       })
     }
   } catch (error: any) {
+    // 详细错误信息记录在服务器日志中
     console.error('生成 SVG 错误:', error)
+    console.error('错误详情:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+    })
+    
+    // 返回用户友好的错误信息（不包含技术细节）
+    const userFriendlyMessage = error.message || '生成失败，请稍后重试'
+    
+    // 如果错误信息包含技术细节，简化为通用提示
+    let finalMessage = userFriendlyMessage
+    if (userFriendlyMessage.includes('API 请求错误') || 
+        userFriendlyMessage.includes('BASE_URL') ||
+        userFriendlyMessage.includes('OPENAI_MODELS') ||
+        userFriendlyMessage.includes('模型名称') ||
+        userFriendlyMessage.includes('请检查：')) {
+      finalMessage = '请求参数错误，请检查模型配置或稍后重试'
+    } else if (userFriendlyMessage.includes('API Key') || userFriendlyMessage.includes('配置')) {
+      finalMessage = 'API 配置错误，请联系管理员'
+    } else if (userFriendlyMessage.includes('网络') || userFriendlyMessage.includes('连接')) {
+      finalMessage = '网络连接失败，请稍后重试'
+    }
+    
     return NextResponse.json(
-      { error: error.message || '生成失败，请稍后重试' },
+      { error: finalMessage },
       { status: 500 }
     )
   }
