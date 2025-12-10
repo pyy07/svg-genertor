@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import type { AIProviderInterface } from '../types'
+import { cleanSVGCode } from '../utils/svg-cleaner'
 
 export class GeminiProvider implements AIProviderInterface {
   readonly name = 'gemini' as const
@@ -85,13 +86,8 @@ ${baseDescription ? `原始描述：${baseDescription}\n\n` : ''}用户的新要
       const response = await result.response
       let svgCode = response.text()
 
-      // 清理可能的 markdown 代码块标记
-      svgCode = svgCode.replace(/```svg\n?/g, '').replace(/```\n?/g, '').trim()
-
-      // 验证 SVG 代码
-      if (!svgCode.includes('<svg')) {
-        throw new Error('生成的代码不是有效的 SVG')
-      }
+      // 清理和规范化 SVG 代码（移除 XML 声明、markdown 标记等）
+      svgCode = cleanSVGCode(svgCode)
 
       return svgCode
     } catch (error: any) {

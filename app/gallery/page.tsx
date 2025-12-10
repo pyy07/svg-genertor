@@ -8,6 +8,8 @@ interface Asset {
   id: string
   description: string
   svgCode: string
+  provider?: string | null
+  model?: string | null
   createdAt: string
   user?: {
     id: string
@@ -103,15 +105,23 @@ export default function GalleryPage() {
                     <p className="text-sm text-gray-700 line-clamp-2 mb-2 group-hover:text-blue-600 transition-colors">
                       {asset.description}
                     </p>
-                    <div className="flex items-center justify-between text-xs text-gray-500">
-                      <span>
-                        {new Date(asset.createdAt).toLocaleDateString('zh-CN')}
-                      </span>
-                      {asset.user?.nickname && (
-                        <span className="text-gray-400">
-                          @{asset.user.nickname}
-                        </span>
+                    <div className="text-xs text-gray-500 space-y-1">
+                      {asset.provider && (
+                        <p>
+                          {asset.provider === 'gemini' ? 'Gemini' : asset.provider === 'openai' ? 'OpenAI' : asset.provider}
+                          {asset.model && ` · ${asset.model}`}
+                        </p>
                       )}
+                      <div className="flex items-center justify-between">
+                        <span>
+                          {new Date(asset.createdAt).toLocaleDateString('zh-CN')}
+                        </span>
+                        {asset.user?.nickname && (
+                          <span className="text-gray-400">
+                            @{asset.user.nickname}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </Link>

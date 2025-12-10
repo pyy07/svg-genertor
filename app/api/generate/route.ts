@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { generateSVG } from '@/lib/ai/factory'
+import { generateSVG, getDefaultProvider, getAIProvider } from '@/lib/ai/factory'
 import { checkUserUsageLimit, incrementUserUsage } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import type { AIProvider } from '@/lib/ai/types'
@@ -79,10 +79,32 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // 确定实际使用的 provider 和 model（用于记录）
+    let actualProvider: AIProvider | null = null
+    let actualModel: string | null = null
+    
+    if (provider) {
+      actualProvider = provider as AIProvider
+    } else {
+      // 如果没有指定 provider，使用默认值
+      actualProvider = getDefaultProvider()
+    }
+    
+    if (model) {
+      actualModel = model
+    } else if (actualProvider) {
+      // 如果没有指定 model，使用该 provider 的第一个可用模型
+      const providerInstance = getAIProvider(actualProvider)
+      const availableModels = providerInstance.getAvailableModels()
+      if (availableModels.length > 0) {
+        actualModel = availableModels[0]
+      }
+    }
+
     // 生成 SVG（支持指定 provider 和 model，以及基于原 SVG 修改）
     const svgCode = await generateSVG(description, {
-      provider: provider as AIProvider | undefined,
-      model: model as string | undefined,
+      provider: actualProvider || undefined,
+      model: actualModel || undefined,
       baseSVG: baseSVGCode,
       baseDescription: baseDesc,
     })
@@ -93,6 +115,8 @@ export async function POST(request: NextRequest) {
         userId: userId || null, // 如果未登录，userId 为 null
         description,
         svgCode,
+        provider: actualProvider,
+        model: actualModel,
       },
     })
 

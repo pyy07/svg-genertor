@@ -1,5 +1,6 @@
 import OpenAI from 'openai'
 import type { AIProviderInterface } from '../types'
+import { cleanSVGCode } from '../utils/svg-cleaner'
 
 export class OpenAIProvider implements AIProviderInterface {
   readonly name = 'openai' as const
@@ -112,26 +113,129 @@ ${baseDescription ? `原始描述：${baseDescription}\n\n` : ''}用户的新要
         throw new Error('OpenAI 返回了空内容')
       }
 
-      // 清理可能的 markdown 代码块标记
-      svgCode = svgCode.replace(/```svg\n?/g, '').replace(/```\n?/g, '').trim()
-
-      // 验证 SVG 代码
-      if (!svgCode.includes('<svg')) {
-        throw new Error('生成的代码不是有效的 SVG')
-      }
+      // 清理和规范化 SVG 代码（移除 XML 声明、markdown 标记等）
+      svgCode = cleanSVGCode(svgCode)
 
       return svgCode
     } catch (error: any) {
       console.error('OpenAI API 错误:', error)
+      console.error('错误对象详情:', JSON.stringify({
+        status: error.status,
+        message: error.message,
+        code: error.code,
+        type: error.type,
+        param: error.param,
+        error: error.error,
+        headers: error.headers,
+        response: error.response ? '存在但无法序列化' : undefined,
+      }, null, 2))
       
-      if (error.status === 401 || error.message?.includes('Invalid API Key')) {
+      // 尝试从错误对象中提取详细信息
+      let errorDetails = error.message || '未知错误'
+      const status = error.status
+      
+      // OpenAI SDK 的错误对象可能包含 response 属性
+      // 尝试读取响应体获取详细错误信息
+      if (error.response) {
+        try {
+          // 尝试从 response.data 读取（最常见的情况）
+          if (error.response.data) {
+            const data = error.response.data
+            if (data.error?.message) {
+              errorDetails = data.error.message
+            } else if (data.message) {
+              errorDetails = data.message
+            } else if (typeof data === 'string') {
+              errorDetails = data
+            } else if (data.error) {
+              errorDetails = typeof data.error === 'string' ? data.error : JSON.stringify(data.error)
+            } else {
+              // 如果 data 是对象，尝试序列化
+              errorDetails = JSON.stringify(data)
+            }
+          }
+          
+          // 如果响应体是流，尝试读取（较少见）
+          if ((!errorDetails || errorDetails.includes('no body')) && error.response.body) {
+            try {
+              const reader = error.response.body.getReader()
+              const decoder = new TextDecoder()
+              let bodyText = ''
+              let done = false
+              
+              while (!done) {
+                const { value, done: streamDone } = await reader.read()
+                done = streamDone
+                if (value) {
+                  bodyText += decoder.decode(value, { stream: true })
+                }
+              }
+              
+              if (bodyText) {
+                try {
+                  const errorData = JSON.parse(bodyText)
+                  if (errorData.error?.message) {
+                    errorDetails = errorData.error.message
+                  } else if (errorData.message) {
+                    errorDetails = errorData.message
+                  } else if (errorData.error) {
+                    errorDetails = typeof errorData.error === 'string' ? errorData.error : JSON.stringify(errorData.error)
+                  } else {
+                    errorDetails = bodyText
+                  }
+                } catch (e) {
+                  // 如果不是 JSON，直接使用文本
+                  errorDetails = bodyText
+                }
+              }
+            } catch (e) {
+              console.error('读取响应流失败:', e)
+            }
+          }
+        } catch (e) {
+          console.error('读取错误响应体失败:', e)
+        }
+      }
+      
+      // 如果错误对象有 error 属性，尝试从中提取
+      if (error.error && (!errorDetails || errorDetails.includes('no body'))) {
+        if (typeof error.error === 'string') {
+          errorDetails = error.error
+        } else if (error.error.message) {
+          errorDetails = error.error.message
+        } else if (typeof error.error === 'object') {
+          errorDetails = JSON.stringify(error.error)
+        }
+      }
+      
+      // 处理 HTTP 错误状态码
+      if (status === 400) {
+        // 400 错误通常是请求参数问题，提供详细的排查建议
+        const suggestions = [
+          `检查 API Key 是否正确（当前 BASE_URL: ${this.baseURL || '默认 OpenAI API'}）`,
+          `检查模型名称 "${modelName}" 是否在 OPENAI_MODELS 配置中`,
+          `检查模型名称 "${modelName}" 是否被 API 提供商支持`,
+          '检查请求参数是否符合 API 要求（某些 API 可能不支持某些参数）',
+          '查看服务器日志获取更详细的错误信息'
+        ]
+        const errorMsg = errorDetails.includes('no body') 
+          ? '请求参数错误（响应体为空，可能是模型名称或参数不匹配）'
+          : errorDetails
+        throw new Error(`API 请求错误 (400): ${errorMsg}。\n请检查：\n${suggestions.map((s, i) => `${i + 1}) ${s}`).join('\n')}`)
+      } else if (status === 401 || errorDetails?.includes('Invalid API Key') || errorDetails?.includes('Unauthorized') || errorDetails?.includes('401')) {
         throw new Error('API Key 无效，请检查 OPENAI_API_KEY 是否正确')
-      } else if (error.status === 429 || error.message?.includes('rate limit')) {
+      } else if (status === 403 || errorDetails?.includes('Forbidden') || errorDetails?.includes('403')) {
+        throw new Error('API 访问被拒绝，请检查 API Key 权限或 OPENAI_BASE_URL 配置')
+      } else if (status === 404 || errorDetails?.includes('Not Found') || errorDetails?.includes('404')) {
+        throw new Error(`API 端点不存在 (404)，请检查 OPENAI_BASE_URL 配置是否正确。当前配置: ${this.baseURL || '默认 OpenAI API'}`)
+      } else if (status === 429 || errorDetails?.includes('rate limit') || errorDetails?.includes('429') || errorDetails?.includes('Too Many Requests')) {
         throw new Error('API 调用次数超限，请稍后再试')
-      } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
-        throw new Error('网络连接失败，请检查网络连接')
+      } else if (errorDetails?.includes('network') || errorDetails?.includes('fetch') || errorDetails?.includes('ECONNREFUSED') || errorDetails?.includes('ENOTFOUND')) {
+        throw new Error(`网络连接失败，请检查网络连接或 OPENAI_BASE_URL 配置。当前配置: ${this.baseURL || '默认 OpenAI API'}`)
+      } else if (status) {
+        throw new Error(`API 请求失败 (${status}): ${errorDetails}。请检查 API 配置`)
       } else {
-        throw new Error(`生成 SVG 失败: ${error.message || '未知错误'}`)
+        throw new Error(`生成 SVG 失败: ${errorDetails}`)
       }
     }
   }

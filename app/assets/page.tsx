@@ -8,6 +8,8 @@ interface Asset {
   id: string
   description: string
   svgCode: string
+  provider?: string | null
+  model?: string | null
   createdAt: string
   user?: {
     id: string
@@ -149,12 +151,18 @@ export default function AssetsPage() {
                   />
                 </div>
                 <div className="p-4">
-                  <p className="text-sm text-gray-700 line-clamp-2 mb-2 group-hover:text-blue-600 transition-colors">
-                    {asset.description}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {new Date(asset.createdAt).toLocaleString('zh-CN')}
-                  </p>
+                      <p className="text-sm text-gray-700 line-clamp-2 mb-2 group-hover:text-blue-600 transition-colors">
+                        {asset.description}
+                      </p>
+                      <div className="text-xs text-gray-500 space-y-1">
+                        {asset.provider && (
+                          <p>
+                            {asset.provider === 'gemini' ? 'Gemini' : asset.provider === 'openai' ? 'OpenAI' : asset.provider}
+                            {asset.model && ` · ${asset.model}`}
+                          </p>
+                        )}
+                        <p>{new Date(asset.createdAt).toLocaleString('zh-CN')}</p>
+                      </div>
                 </div>
               </Link>
             ))}

@@ -8,6 +8,8 @@ interface Asset {
   id: string
   description: string
   svgCode: string
+  provider?: string | null
+  model?: string | null
   createdAt: string
   user?: {
     id: string
@@ -92,10 +94,16 @@ export default function AssetDetailPage() {
           </pre>
         </details>
 
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-gray-600 space-y-2">
           <p>创建时间: {new Date(asset.createdAt).toLocaleString('zh-CN')}</p>
+          {asset.provider && (
+            <p>
+              AI 模型: <span className="font-medium">{asset.provider === 'gemini' ? 'Google Gemini' : asset.provider === 'openai' ? 'OpenAI' : asset.provider}</span>
+              {asset.model && <span className="ml-2 text-gray-500">({asset.model})</span>}
+            </p>
+          )}
           {asset.user && (
-            <p className="mt-2">创建者: {asset.user.nickname || '匿名用户'}</p>
+            <p>创建者: {asset.user.nickname || '匿名用户'}</p>
           )}
         </div>
       </div>
