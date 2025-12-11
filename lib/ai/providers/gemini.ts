@@ -152,7 +152,9 @@ ${baseDescription ? `原始描述：${baseDescription}\n\n` : ''}用户的新要
   private buildHTMLPrompt(description: string, baseCode?: string, baseDescription?: string): string {
     if (baseCode) {
       // 修改模式：基于原 HTML 进行修改
-      return `你是一个专业的 H5 动画设计师，擅长创建精美的 CSS/JavaScript 动画效果。用户想要修改一个已有的 H5 动画。
+      return `你是一个世界级的 H5 动画设计和编码专家。
+
+用户想要修改一个已有的 H5 动画。
 
 原始 HTML 代码：
 \`\`\`html
@@ -162,29 +164,81 @@ ${baseCode}
 ${baseDescription ? `原始描述：${baseDescription}\n\n` : ''}用户的新要求：${description}
 
 请根据用户的新要求，修改上述 HTML 代码。要求：
-1. 保留原动画的整体风格和结构
-2. 根据用户的新要求进行修改（如改变颜色、大小、动画效果、添加元素等）
-3. 生成完整的 HTML 代码，包含必要的 CSS 和 JavaScript
-4. 使用现代 CSS 动画（如 @keyframes、transition、transform）或 JavaScript 动画
-5. 动画应该流畅、美观，有良好的视觉效果
-6. 只返回 HTML 代码，不要包含任何解释文字或 markdown 代码块标记
-7. 代码应该可以直接在 iframe 中运行
-8. 使用 flexbox 或 grid 实现居中布局
+
+1. **输出格式**：只返回原始 HTML 代码。不要用 markdown 代码块包裹（例如不要用 \`\`\`html）。不要在前后添加任何对话性文字。
+
+2. **保留风格**：保留原动画的整体风格、结构和视觉质量。
+
+3. **修改要求**：根据用户的新要求进行修改（如改变颜色、大小、动画效果、添加元素等）。
+
+4. **代码完整性**：
+   - 生成完整的 HTML 代码，包含必要的 CSS 和 JavaScript
+   - 代码应该可以直接在 iframe 中运行（使用 sandbox="allow-scripts allow-same-origin"）
+   - 所有样式和脚本都应该内联在 HTML 中，不要使用外部资源
+
+5. **动画技术**：
+   - 优先使用现代 CSS 动画（@keyframes、transition、transform、animation）
+   - 可以使用 JavaScript 动画（requestAnimationFrame）实现更复杂的交互
+   - 可以使用 Canvas、SVG 内嵌动画等技术
+   - 确保动画流畅、不卡顿，使用硬件加速（transform、opacity）
+
+6. **视觉质量**：
+   - 动画应该流畅、美观，有良好的视觉效果
+   - 使用渐变、阴影、过渡效果增强视觉吸引力
+   - 颜色搭配协调，符合动画主题
+
+7. **布局和响应式**：
+   - 使用 flexbox 或 grid 实现居中布局
+   - 确保在不同屏幕尺寸下都能良好显示
+   - 页面背景可以根据动画主题设计，不必是白色
+
+8. **性能优化**：
+   - 避免不必要的重绘和重排
+   - 合理使用 will-change 属性
+   - 动画帧率应保持在 60fps
 
 请返回修改后的 HTML 代码：`
     } else {
       // 新建模式：生成新的 HTML 动画
-      return `你是一个专业的 H5 动画设计师，擅长创建精美的 CSS/JavaScript 动画效果。根据用户的描述，生成一个完整的、可运行的 H5 动画页面。
+      return `你是一个世界级的 H5 动画设计和编码专家。
 
-要求：
-1. 生成完整的 HTML 代码，包含必要的 CSS 和 JavaScript
-2. 使用现代 CSS 动画（如 @keyframes、transition、transform）或 JavaScript 动画
-3. 动画应该流畅、美观，有良好的视觉效果
-4. 可以使用 Canvas、CSS 动画、SVG 内嵌动画等技术
-5. 只返回 HTML 代码，不要包含任何解释文字或 markdown 代码块标记
-6. 代码应该可以直接在 iframe 中运行
-7. 使用 flexbox 或 grid 实现居中布局
-8. 页面背景可以根据动画主题设计，不必是白色
+你的任务是根据用户的描述，生成一个高质量、视觉精美、流畅的 H5 动画页面。
+
+**输出格式**：只返回原始 HTML 代码。不要用 markdown 代码块包裹（例如不要用 \`\`\`html）。不要在前后添加任何对话性文字。
+
+**代码完整性**：
+- 生成完整的 HTML 代码，包含必要的 CSS 和 JavaScript
+- 代码应该可以直接在 iframe 中运行（使用 sandbox="allow-scripts allow-same-origin"）
+- 所有样式和脚本都应该内联在 HTML 中，不要使用外部资源
+- HTML 结构应该完整，包含 <!DOCTYPE html>、<html>、<head>、<body> 标签
+
+**动画技术**：
+- 优先使用现代 CSS 动画（@keyframes、transition、transform、animation）
+- 可以使用 JavaScript 动画（requestAnimationFrame）实现更复杂的交互和动态效果
+- 可以使用 Canvas API 绘制复杂的图形和动画
+- 可以使用 SVG 内嵌动画
+- 确保动画流畅、不卡顿，使用硬件加速（transform、opacity）
+
+**视觉质量**：
+- 动画应该流畅、美观，有良好的视觉效果
+- 使用渐变、阴影、过渡效果增强视觉吸引力
+- 颜色搭配协调，符合动画主题
+- 页面背景可以根据动画主题设计，不必是白色
+
+**布局和响应式**：
+- 使用 flexbox 或 grid 实现居中布局
+- 确保在不同屏幕尺寸下都能良好显示
+- 默认视口尺寸建议为 800x600 或 1024x768，但可以根据动画内容调整
+
+**性能优化**：
+- 避免不必要的重绘和重排
+- 合理使用 will-change 属性提示浏览器优化
+- 动画帧率应保持在 60fps
+- 避免在动画过程中触发 layout 操作
+
+**交互性**（如果适用）：
+- 可以添加鼠标悬停、点击等交互效果
+- 交互应该流畅、响应及时
 
 用户描述：${description}
 
