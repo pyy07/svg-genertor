@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
     if (baseAssetId && !baseCode) {
       const baseAsset = await prisma.asset.findUnique({
         where: { id: baseAssetId },
-        select: { svgCode: true, description: true, type: true },
+        select: { svgCode: true, description: true },
       })
       if (baseAsset) {
         baseCode = baseAsset.svgCode
@@ -128,15 +128,27 @@ export async function POST(request: NextRequest) {
     })
 
     // 保存素材（无论是否登录）
+    // 注意：Prisma 5.22.0+ 要求使用关系而不是直接设置外键字段
+    // 但为了兼容旧版本（如生产环境的 5.19.0），我们使用条件判断
+    const assetData: any = {
+      description,
+      svgCode: generatedCode,  // 保留字段名兼容
+      type: contentType,  // 新增类型字段
+      provider: actualProvider,
+      model: actualModel,
+    }
+    
+    // 如果已登录，使用关系连接用户（Prisma 5.22.0+ 要求）
+    // 对于旧版本，也可以直接设置 userId，但新版本会报错
+    if (userId) {
+      assetData.user = {
+        connect: { id: userId }
+      }
+    }
+    // 注意：当 userId 为 null 时，不设置 user 字段，让 Prisma 自动处理
+    
     const asset = await prisma.asset.create({
-      data: {
-        userId: userId || null, // 如果未登录，userId 为 null
-        description,
-        svgCode: generatedCode,  // 保留字段名兼容
-        type: contentType,  // 新增类型字段
-        provider: actualProvider,
-        model: actualModel,
-      },
+      data: assetData,
     })
 
     // 如果已登录，增加使用次数
