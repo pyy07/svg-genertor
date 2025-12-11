@@ -121,7 +121,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation user={user || undefined} onLogout={handleLogout} />
-      <main className="min-h-[calc(100vh-4rem)] flex flex-col lg:flex-row">
+      <main className="pt-14 sm:pt-16 min-h-[calc(100vh-3.5rem)] sm:min-h-[calc(100vh-4rem)] flex flex-col lg:flex-row">
         {/* 预览区域 - 移动端在上，桌面端在左 */}
         <div className="flex-1 bg-white p-3 sm:p-6 flex flex-col border-b lg:border-b-0 lg:border-r border-gray-200 order-1 min-h-0">
           <div className="mb-2 sm:mb-4 flex-shrink-0">
