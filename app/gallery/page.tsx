@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Navigation from '@/components/Navigation'
+import H5CardPreview from '@/components/H5CardPreview'
 
 interface Asset {
   id: string
@@ -113,14 +114,19 @@ export default function GalleryPage() {
                         className="group bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200"
                       >
                         <div className="aspect-square bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center p-3 overflow-hidden relative">
+                          {/* 类型角标（更醒目，不影响布局） */}
+                          <span
+                            className={`absolute left-0 top-0 z-10 px-2.5 py-1 text-[11px] font-bold tracking-wide text-white rounded-br-lg shadow-md ${
+                              asset.type === 'html'
+                                ? 'bg-purple-600'
+                                : 'bg-blue-600'
+                            }`}
+                          >
+                            {asset.type === 'html' ? 'H5' : 'SVG'}
+                          </span>
                           {asset.type === 'html' ? (
-                            // H5（HTML）不能直接注入到页面，否则其 <style> 可能污染全站背景
-                            <div className="w-full h-full rounded-md overflow-hidden bg-white/90 flex flex-col items-center justify-center text-gray-400">
-                              <svg className="w-14 h-14 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                              </svg>
-                              <span className="text-sm">H5 动画</span>
-                            </div>
+                            // H5（HTML）用 iframe + Blob URL 隔离渲染，避免 style 污染全站
+                            <H5CardPreview html={asset.svgCode} />
                           ) : (
                             <div className="w-full h-full rounded-md overflow-hidden bg-white/80 backdrop-blur-sm flex items-center justify-center">
                               <div
