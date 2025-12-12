@@ -181,7 +181,7 @@ export default function SVGGenerator({
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full h-full flex flex-col">
 
       {/* 内容类型选择 */}
       <div className="mb-4 sm:mb-6">
@@ -315,58 +315,66 @@ export default function SVGGenerator({
       )}
 
       {/* 操作按钮 */}
-      <div className="space-y-3 sm:space-y-4">
-        {code && (
+      <div className="space-y-2.5 sm:space-y-3">
+        {/* 主按钮 + 重新生成（同一行/同一高度，避免生成后新增一整行导致布局变形） */}
+        <div className="flex flex-col sm:flex-row gap-2">
           <button
-            onClick={() => {
-              setCode(null)
-              setBaseCode(null)
-              setBaseDescription('')
-              setDescription('')
-              // 通知父组件清除代码
-              if (onCodeGenerated) {
-                onCodeGenerated('', contentType)
-              }
-            }}
-            disabled={loading}
-            className="w-full px-4 py-2.5 sm:py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors touch-manipulation"
-            title={`清除当前${contentType === 'html' ? 'H5动画' : 'SVG'}，重新生成`}
+            onClick={handleGenerate}
+            disabled={
+              loading ||
+              !description.trim() ||
+              (isLoggedIn && currentRemaining === 0 && remaining !== -1) ||
+              (!allowAnonymous && !isLoggedIn)
+            }
+            className="flex-1 px-6 py-3.5 sm:py-4 min-h-[52px] sm:min-h-[56px] bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:from-orange-600 hover:to-red-600 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed transition-all font-medium flex items-center justify-center gap-2 shadow-lg text-sm sm:text-base touch-manipulation whitespace-nowrap"
           >
-            重新生成
+            {loading ? (
+              <>
+                <span className="animate-spin">⚡</span>
+                <span>生成中...</span>
+              </>
+            ) : code ? (
+              <>
+                <span>⚡</span>
+                <span>修改动画</span>
+              </>
+            ) : (
+              <>
+                <span>⚡</span>
+                <span>开始生成动画</span>
+              </>
+            )}
           </button>
-        )}
-        <button
-          onClick={handleGenerate}
-          disabled={
-            loading ||
-            !description.trim() ||
-            (isLoggedIn && currentRemaining === 0 && remaining !== -1) ||
-            (!allowAnonymous && !isLoggedIn)
-          }
-          className="w-full px-6 py-3.5 sm:py-4 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:from-orange-600 hover:to-red-600 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed transition-all font-medium flex items-center justify-center gap-2 shadow-lg text-sm sm:text-base touch-manipulation"
-        >
-          {loading ? (
-            <>
-              <span className="animate-spin">⚡</span>
-              <span>生成中...</span>
-            </>
-          ) : code ? (
-            <>
-              <span>⚡</span>
-              <span>修改此{contentType === 'html' ? 'H5动画' : 'SVG'}</span>
-            </>
-          ) : (
-            <>
-              <span>⚡</span>
-              <span>开始生成动画</span>
-            </>
+
+          {code && (
+            <button
+              onClick={() => {
+                setCode(null)
+                setBaseCode(null)
+                setBaseDescription('')
+                setDescription('')
+                // 通知父组件清除代码
+                if (onCodeGenerated) {
+                  onCodeGenerated('', contentType)
+                }
+              }}
+              disabled={loading}
+              className="sm:w-40 w-full px-4 py-3.5 sm:py-4 min-h-[52px] sm:min-h-[56px] text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors touch-manipulation whitespace-nowrap"
+              title={`清除当前${contentType === 'html' ? 'H5动画' : 'SVG'}，重新生成`}
+            >
+              重新生成
+            </button>
           )}
-        </button>
-        {!isLoggedIn && !allowAnonymous && (
-          <p className="text-xs text-center text-gray-500">
-            提示：生成动画需要先登录
-          </p>
-        )}
+        </div>
+
+        {/* 固定高度的小提示：避免生成后出现大块提示卡片导致页面高度变化 */}
+        <p className="text-xs text-center text-gray-500 leading-5 min-h-[20px]">
+          {!isLoggedIn && !allowAnonymous
+            ? '提示：生成动画需要先登录'
+            : code
+              ? `💡 输入新的描述可以修改当前${contentType === 'html' ? 'H5动画' : 'SVG'}，或点击“重新生成”创建全新的动画`
+              : ''}
+        </p>
       </div>
 
       {error && (
@@ -375,21 +383,10 @@ export default function SVGGenerator({
         </div>
       )}
 
-      {code && (
-        <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-xs text-blue-800 mb-2">
-            💡 <strong>提示</strong>：输入新的描述可以修改当前{contentType === 'html' ? 'H5动画' : 'SVG'}，或点击&quot;重新生成&quot;创建全新的动画
-          </p>
-          {baseDescription && (
-            <p className="text-xs text-blue-600 mb-1">
-              当前描述：{baseDescription}
-            </p>
-          )}
-        </div>
-      )}
+      {/* 生成后的“提示卡片”会撑高右侧面板导致布局变形，已改为上方的一行固定高度提示 */}
 
-      {/* 底部链接 */}
-      <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-gray-200">
+      {/* 底部链接：用 mt-auto 贴底，避免右侧面板出现“内容没撑满导致底部空一截”的视觉落差 */}
+      <div className="mt-auto pt-4 border-t border-gray-200">
         <a
           href="#"
           className="text-xs text-gray-500 hover:text-gray-700 text-center block py-2"

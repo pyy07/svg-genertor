@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 type ContentType = 'svg' | 'html'
 
@@ -49,9 +49,12 @@ export default function SVGPreview({ code, loading, contentType = 'svg' }: SVGPr
     return null
   }, [code, contentType])
 
-  // 清理 Blob URL
-  // 注意：这里使用 useMemo 的依赖来控制何时创建新的 URL
-  // 旧的 URL 会在组件重新渲染时被覆盖，浏览器会在页面关闭时清理
+  // 清理 Blob URL，避免频繁生成 H5 预览导致内存增长
+  useEffect(() => {
+    return () => {
+      if (htmlBlobUrl) URL.revokeObjectURL(htmlBlobUrl)
+    }
+  }, [htmlBlobUrl])
 
   return (
     <div className="w-full flex-1 relative flex flex-col min-h-0">
@@ -94,19 +97,25 @@ export default function SVGPreview({ code, loading, contentType = 'svg' }: SVGPr
               )}
             </button>
           </div>
-          <div className="flex-1 flex items-center justify-center p-4 sm:p-8 overflow-auto min-h-0">
+          <div className="flex-1 min-h-0 p-4 sm:p-8 overflow-hidden">
             {contentType === 'html' && htmlBlobUrl ? (
-              <iframe
-                src={htmlBlobUrl}
-                className="w-full h-full min-h-[400px] border-0 rounded-lg bg-white"
-                sandbox="allow-scripts allow-same-origin"
-                title="H5 动画预览"
-              />
+              // H5 预览：用绝对定位锁定 iframe 尺寸，避免其最小高度/内容高度把布局撑大
+              <div className="relative w-full h-full overflow-hidden rounded-lg bg-white border border-gray-200">
+                <iframe
+                  src={htmlBlobUrl}
+                  className="absolute inset-0 w-full h-full border-0"
+                  sandbox="allow-scripts allow-same-origin"
+                  title="H5 动画预览"
+                />
+              </div>
             ) : (
-              <div
-                className="w-full flex items-center justify-center"
-                dangerouslySetInnerHTML={{ __html: code }}
-              />
+              // SVG 预览：允许内容过大时在预览区内部滚动
+              <div className="w-full h-full overflow-auto flex items-center justify-center">
+                <div
+                  className="w-full flex items-center justify-center"
+                  dangerouslySetInnerHTML={{ __html: code }}
+                />
+              </div>
             )}
           </div>
         </>

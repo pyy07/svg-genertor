@@ -109,47 +109,62 @@ export default function Home() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">加载中...</p>
-        </div>
-      </main>
+      <div className="h-screen overflow-hidden flex flex-col">
+        <Navigation />
+        <main className="flex-1 overflow-hidden p-2 sm:p-3 lg:p-6">
+          <div className="h-full max-w-screen-2xl mx-auto">
+            <div className="h-full bg-gray-50 rounded-xl shadow-sm border border-white/50 overflow-hidden flex flex-col min-h-0">
+              <div className="flex-1 flex items-center justify-center">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+                  <p className="text-lg text-gray-700">加载中...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="h-screen overflow-hidden flex flex-col">
       <Navigation user={user || undefined} onLogout={handleLogout} />
-      <main className="pt-14 sm:pt-16 min-h-[calc(100vh-3.5rem)] sm:min-h-[calc(100vh-4rem)] flex flex-col lg:flex-row">
-        {/* 预览区域 - 移动端在上，桌面端在左 */}
-        <div className="flex-1 bg-white p-3 sm:p-6 flex flex-col border-b lg:border-b-0 lg:border-r border-gray-200 order-1 min-h-0">
-          <div className="mb-2 sm:mb-4 flex-shrink-0">
-            <h2 className="text-gray-900 text-base sm:text-lg font-medium">动画预览</h2>
-          </div>
-          <div className="flex-1 bg-white rounded-lg border border-gray-300 overflow-hidden shadow-sm min-h-[300px] sm:min-h-[400px] lg:min-h-0 flex flex-col min-h-0">
-            <SVGPreview code={code} loading={codeLoading} contentType={contentType} />
-          </div>
-        </div>
+      <main className="flex-1 overflow-hidden p-2 sm:p-3 lg:p-6">
+        <div className="h-full max-w-screen-2xl mx-auto">
+          <div className="h-full bg-gray-50 rounded-xl shadow-sm border border-white/50 overflow-hidden flex flex-col min-h-0">
+            {/* 内容滚动区：移动端预览+操作在同一滚动容器里上下滑动 */}
+            <div className="flex-1 overflow-y-auto min-h-0 home-scroll">
+              <div className="flex flex-col lg:flex-row min-h-full">
+                {/* 预览区域 - 移动端在上，桌面端在左 */}
+                <div className="flex-1 bg-white p-3 sm:p-6 flex flex-col border-b lg:border-b-0 lg:border-r border-gray-200 order-1 min-h-0">
+                  <div className="flex-1 bg-white rounded-lg border border-gray-300 overflow-hidden shadow-sm min-h-[320px] sm:min-h-[420px] lg:min-h-0 flex flex-col">
+                    <SVGPreview code={code} loading={codeLoading} contentType={contentType} />
+                  </div>
+                </div>
 
-        {/* 控制面板 - 移动端在下，桌面端在右 */}
-        <div className="w-full lg:w-96 bg-white border-t lg:border-t-0 lg:border-l border-gray-200 overflow-y-auto order-2 max-h-[60vh] lg:max-h-none">
-          <div className="p-3 sm:p-6">
-            <SVGGenerator
-              userId={user?.id}
-              remaining={user?.remaining ?? 0}
-              isLoggedIn={!!user}
-              allowAnonymous={allowAnonymous}
-              onLoginRequest={handleWechatLogin}
-              code={code}
-              contentType={contentType}
-              onCodeGenerated={(newCode, newContentType) => {
-                setCode(newCode || null)
-                setContentType(newContentType)
-                setCodeLoading(false)
-              }}
-              onLoadingChange={(loading) => setCodeLoading(loading)}
-            />
+                {/* 控制面板 - 移动端在下，桌面端在右 */}
+                <div className="w-full lg:w-96 bg-white border-t lg:border-t-0 lg:border-l border-gray-200 order-2">
+                  <div className="p-3 sm:p-6 h-full flex flex-col">
+                    <SVGGenerator
+                      userId={user?.id}
+                      remaining={user?.remaining ?? 0}
+                      isLoggedIn={!!user}
+                      allowAnonymous={allowAnonymous}
+                      onLoginRequest={handleWechatLogin}
+                      code={code}
+                      contentType={contentType}
+                      onCodeGenerated={(newCode, newContentType) => {
+                        setCode(newCode || null)
+                        setContentType(newContentType)
+                        setCodeLoading(false)
+                      }}
+                      onLoadingChange={(loading) => setCodeLoading(loading)}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </main>

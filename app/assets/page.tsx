@@ -27,6 +27,17 @@ export default function AssetsPage() {
   const [userOnly, setUserOnly] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
 
+  const sanitizeForPreview = (raw: string) => {
+    if (!raw) return ''
+    const svgMatch = raw.match(/<svg[\s\S]*<\/svg>/i)
+    let svg = svgMatch ? svgMatch[0] : raw
+    svg = svg.replace(/<script[\s\S]*?<\/script>/gi, '')
+    svg = svg.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, (styleBlock) => {
+      return /(^|[^\w-])(html|body|:root)\b/i.test(styleBlock) ? '' : styleBlock
+    })
+    return svg
+  }
+
   const handleLogout = async () => {
     try {
       await fetch('/api/auth/logout', {
@@ -71,30 +82,15 @@ export default function AssetsPage() {
     }
   }
 
-  if (loading) {
-    return (
-      <main className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">加载中...</p>
-        </div>
-      </main>
-    )
-  }
-
   return (
-    <div className="bg-gray-50">
+    <div className="h-screen overflow-hidden flex flex-col">
       <Navigation />
-      <main className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-8 pt-20 sm:pt-24">
-        <div className="mb-4 sm:mb-8">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-3 sm:gap-0">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">我的素材</h1>
-              <p className="text-sm sm:text-base text-gray-600">管理您生成的所有 SVG 动画</p>
-            </div>
-            <div className="flex gap-2 sm:gap-3 items-center">
+      <main className="flex-1 overflow-hidden p-2 sm:p-3 lg:p-6">
+        <div className="h-full max-w-screen-2xl mx-auto">
+          <div className="h-full bg-gray-50 rounded-xl shadow-sm border border-white/50 px-3 sm:px-4 lg:px-6 py-4 sm:py-6 flex flex-col min-h-0">
+            <div className="mb-3 sm:mb-4 flex-shrink-0 flex justify-end">
               {isLoggedIn && (
-                <>
+                <div className="flex gap-2 sm:gap-3 items-center">
                   <label className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-white border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors touch-manipulation">
                     <input
                       type="checkbox"
@@ -110,86 +106,98 @@ export default function AssetsPage() {
                   >
                     退出登录
                   </button>
-                </>
+                </div>
               )}
             </div>
-          </div>
-        </div>
 
-        {!isLoggedIn ? (
-          <div className="text-center py-20 bg-white rounded-lg shadow-sm">
-            <div className="text-6xl mb-4">🔒</div>
-            <p className="text-gray-600 text-lg mb-2">请先登录</p>
-            <p className="text-gray-500 text-sm mb-6">登录后才会为您保存生成的 SVG 动画</p>
-            <Link
-              href="/login"
-              className="inline-block px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-            >
-              立即登录
-            </Link>
-          </div>
-        ) : assets.length === 0 ? (
-          <div className="text-center py-20 bg-white rounded-lg shadow-sm">
-            <div className="text-6xl mb-4">📦</div>
-            <p className="text-gray-600 text-lg mb-4">暂无素材</p>
-            <Link
-              href="/"
-              className="inline-block px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-            >
-              去生成第一个 SVG
-            </Link>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {assets.map((asset) => (
-              <Link
-                key={asset.id}
-                href={`/assets/${asset.id}`}
-                className="group bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200"
-              >
-                <div className="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4 overflow-hidden relative">
-                  {/* 类型标签 */}
-                  <span className={`absolute top-2 right-2 px-2 py-0.5 text-xs rounded ${
-                    asset.type === 'html' 
-                      ? 'bg-purple-100 text-purple-700' 
-                      : 'bg-blue-100 text-blue-700'
-                  }`}>
-                    {asset.type === 'html' ? 'H5' : 'SVG'}
-                  </span>
-                  {asset.type === 'html' ? (
-                    // HTML 类型显示占位图标
-                    <div className="flex flex-col items-center justify-center text-gray-400">
-                      <svg className="w-16 h-16 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                      </svg>
-                      <span className="text-sm">H5 动画</span>
-                    </div>
-                  ) : (
-                    <div
-                      className="w-full h-full flex items-center justify-center [&_svg]:max-w-full [&_svg]:max-h-full [&_svg]:w-auto [&_svg]:h-auto"
-                      dangerouslySetInnerHTML={{ __html: asset.svgCode }}
-                    />
-                  )}
+            <div className="flex-1 overflow-y-auto min-h-0">
+              {loading ? (
+                <div className="h-full flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+                    <p className="text-lg text-gray-700">加载中...</p>
+                  </div>
                 </div>
-                <div className="p-3 sm:p-4">
-                      <p className="text-xs sm:text-sm text-gray-700 line-clamp-2 mb-2 group-hover:text-blue-600 transition-colors">
-                        {asset.description}
-                      </p>
-                      <div className="text-xs text-gray-500 space-y-1">
-                        {asset.provider && (
-                          <p>
-                            {asset.provider === 'gemini' ? 'Gemini' : asset.provider === 'openai' ? 'OpenAI' : asset.provider}
-                            {asset.model && ` · ${asset.model}`}
-                          </p>
+              ) : !isLoggedIn ? (
+                <div className="h-full flex items-center justify-center">
+                  <div className="text-center py-10 bg-white rounded-lg shadow-sm w-full">
+                    <div className="text-6xl mb-4">🔒</div>
+                    <p className="text-gray-600 text-lg mb-2">请先登录</p>
+                    <p className="text-gray-500 text-sm mb-6">登录后才会为您保存生成的 SVG 动画</p>
+                    <Link
+                      href="/login"
+                      className="inline-block px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                    >
+                      立即登录
+                    </Link>
+                  </div>
+                </div>
+              ) : assets.length === 0 ? (
+                <div className="h-full flex items-center justify-center">
+                  <div className="text-center py-10 bg-white rounded-lg shadow-sm w-full">
+                    <div className="text-6xl mb-4">📦</div>
+                    <p className="text-gray-600 text-lg mb-4">暂无素材</p>
+                    <Link
+                      href="/"
+                      className="inline-block px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                    >
+                      去生成第一个 SVG
+                    </Link>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                  {assets.map((asset) => (
+                    <Link
+                      key={asset.id}
+                      href={`/assets/${asset.id}`}
+                      className="group bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200"
+                    >
+                      <div className="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4 overflow-hidden relative">
+                        {/* 类型标签 */}
+                        <span className={`absolute top-2 right-2 px-2 py-0.5 text-xs rounded ${
+                          asset.type === 'html' 
+                            ? 'bg-purple-100 text-purple-700' 
+                            : 'bg-blue-100 text-blue-700'
+                        }`}>
+                          {asset.type === 'html' ? 'H5' : 'SVG'}
+                        </span>
+                        {asset.type === 'html' ? (
+                          <div className="flex flex-col items-center justify-center text-gray-400">
+                            <svg className="w-16 h-16 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                            </svg>
+                            <span className="text-sm">H5 动画</span>
+                          </div>
+                        ) : (
+                          <div
+                            className="w-full h-full flex items-center justify-center [&_svg]:max-w-full [&_svg]:max-h-full [&_svg]:w-auto [&_svg]:h-auto"
+                            dangerouslySetInnerHTML={{ __html: sanitizeForPreview(asset.svgCode) }}
+                          />
                         )}
-                        <p>{new Date(asset.createdAt).toLocaleString('zh-CN')}</p>
                       </div>
+                      <div className="p-3 sm:p-4">
+                        <p className="text-xs sm:text-sm text-gray-700 line-clamp-2 mb-2 group-hover:text-blue-600 transition-colors">
+                          {asset.description}
+                        </p>
+                        <div className="text-xs text-gray-500 space-y-1">
+                          {asset.provider && (
+                            <p>
+                              {asset.provider === 'gemini' ? 'Gemini' : asset.provider === 'openai' ? 'OpenAI' : asset.provider}
+                              {asset.model && ` · ${asset.model}`}
+                            </p>
+                          )}
+                          <p>{new Date(asset.createdAt).toLocaleString('zh-CN')}</p>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
                 </div>
-              </Link>
-            ))}
-          </div>
-        )}
-      </main>
+              )}
+            </div>
+        </div>
+      </div>
+    </main>
     </div>
   )
 }
