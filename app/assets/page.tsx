@@ -83,7 +83,7 @@ export default function AssetsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="bg-gray-50">
       <Navigation />
       <main className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-8 pt-20 sm:pt-24">
         <div className="mb-4 sm:mb-8">
